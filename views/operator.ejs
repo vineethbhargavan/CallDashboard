@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th , td  {
+  border: 1px solid grey;
+  border-collapse: collapse;
+  padding: 5px;
+}
+table tr:nth-child(odd) {
+  background-color: #f1f1f1;
+}
+table tr:nth-child(even) {
+  background-color: #ffffff;
+}
+
+tr.highlight td {
+    background-color: red;
+}
+
+tr.highlight2 td {
+    background-color: blue;
+}
+</style>
+
+</head>
+
+<body ng-app="myApp" id="body">
+
+
+<div  ng-controller="opprfController" id="opprfController"> 
+<table>
+  <tr>
+    <td>id</td>
+    <td>name</td>
+    <td>flag</td>
+    <td>mode</td>
+  </tr>
+  <tr ng-repeat="x in opprf">
+    <td>{{ x.id }}</td>
+    <td>{{ x.name }}</td>
+    <td>{{ x.flag }}</td>
+    <td>{{ x.mode }}</td>
+  </tr>
+</table>
+</div> 
+<br>
+<div>
+</div> 
+<div  ng-controller="queueController" id="queueController"> 
+<table>
+<tr style='bold'>
+    
+    <td>queueState</td>
+    <td>callerInfo</td>
+    <td>companyName</td>
+    <td>operatorName</td>
+    <td>duration</td>
+</tr>
+  <tr ng-repeat="x in queue | filter: queueState | orderBy:'duration'"   class="{{ (x.duration)> 140 && (x.queueState)== 'finding_op' || (x.queueState)== 'timeout' ? 'highlight' : '' }}" >
+    
+
+    <td>{{ x.queueState }}</td>
+    <td>{{ x.callerInfo }}</td>
+    <td>{{ x.companyName }}</td>
+    <td>{{ x.operatorName }}</td>
+    <td>{{ x.duration }}</td>
+  </tr>
+</table>
+</div> 
+
+
+
+</body>
+</html>
+

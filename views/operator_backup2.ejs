@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<style>
+table, th , td  {
+  border: 1px solid grey;
+  border-collapse: collapse;
+  padding: 5px;
+}
+table tr:nth-child(odd)	{
+  background-color: #f1f1f1;
+}
+table tr:nth-child(even) {
+  background-color: #ffffff;
+}
+</style>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+<script type"text/javascript" src="/js/dependencies/sails.io.js"></script>
+<body>
+
+<div ng-app="myApp" ng-controller="customersCtrl"> 
+
+<table>
+  <tr ng-repeat="x in operators">
+    <td>{{ x.id }}</td>
+    <td>{{ x.flag }}</td>
+  </tr>
+</table>
+
+</div>
+
+<script>
+//io.sails.autoConnect = false;
+console.log(io.socket.isConnected());
+io.sails.connect('http://192.168.0.10:1337');
+io.socket.reconnect();
+console.log(io.socket.isConnected());
+io.socket.on('handshake', function (msg) {
+  console.log('Handshake');
+});
+io.socket.on('connect', function(){
+      io.socket.get('/messages');
+      io.socket.get('/notifications/subscribe/statusUpdates');
+  });
+
+  io.socket.on('disconnect', function(){
+      console.log('Lost connection to server');
+  });
+var newSailsSocket = io.sails.connect('http://192.168.0.10:1337');
+var app = angular.module('myApp', []);
+app.controller('customersCtrl', function($scope) {
+    $scope.operators = <%-JSON.stringify(operators)%>;
+	console.log(newSailsSocket.isConnected());
+});
+
+
+</script>
+
+</body>
+</html>
+
