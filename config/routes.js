@@ -41,7 +41,8 @@ module.exports.routes = {
   '/userlist': 'OperatorStatusController.getUserNames',
   'post /room/opprf': 'OperatorStatusController.join',
   'post /room/userlist': 'OperatorStatusController.getUserNames',
-  '/dashboard': 'OperatorStatusController.launchdashboard'
+  '/dashboard': 'OperatorStatusController.launchdashboard',
+  '/test': 'OperatorStatusController.testFunction'
 
   /***************************************************************************
   *                                                                          *

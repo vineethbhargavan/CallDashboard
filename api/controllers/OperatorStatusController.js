@@ -8,26 +8,42 @@ var Opprf_global;
 var userlist_global;
 var companylist_global;
 
-function testfunction(){
+function testFunction(){
     sails.log("Test function");
       var opp_user = {};
                    opp_user.flag = 1;
                    opp_user.name = 'userResult[0].name';
-                   opp_user.id = '1221';
-                   opp_user.mode = '1';
-                   r_operator.create(opp_user).exec(function(err,result){
-                      sails.log('Operator Objec Created'+result) ;
-                   });
+                   opp_user.id = '1222';
+                   opp_user.mode = '5';
+                   //sails.log(opp_user['id']);
+                   r_operator.insertOrUpdate('id',opp_user,function(err,updated){
+                         if(err) { //returns if an error has occured, ie invoice_id doesn't exist.
+                            sails.log(err);
+                         } else {
+                             sails.log('insertOrUpdate client record ', updated.mode); //+updated[0].name
+                         }
+                   })
+                   
+                   
+//                    r_operator.update({id:opp_user.id}).exec(function (err,opp_user){
+//                              sails.log('Operator Objec Updated'+err);
+//                    });
+//                   r_operator.findOrCreate({id:opp_user.id},opp_user,function(err,result){
+//                      
+//                      if(result==undefined){
+//                        sails.log('Operator Objec Created'+result) ;
+//                      }
+//                   });
 }
 
 function updateOperator(operatorD,callback){
     sails.log("updateOperator");
-    r_operator.destroy().exec(function(err,result){
-    r_operator.create(operatorD).exec(function(err,result){
+    
+    r_operator.insertOrUpdate("id",operatorD,function(err,result){
        sails.log('Operator Objec Created'+result) ;
        callback(result);
     });
-    });
+   
     
 }
 
@@ -156,24 +172,27 @@ module.exports = {
                 mapOperatorNameID(function(result){
                     sails.log("calling map"+result);
                     sails.sockets.broadcast(roomId, 'opprflist', result);
+                    
                 });
         
     },launchdashboard: function(req,resp){
         sms_services.find().exec(function(err,result_sms){
            var comp = result_sms;
            if(comp!=undefined){
-               r_company_info.destroy().exec(function(err,result){
-                r_company_info.create(comp).exec(function(err,result){
+               
+                r_company_info.insertOrUpdate("company_info_id",comp,function(err,result){
                     sails.log('r_company_info Objec Created'+result) ;
                     //callback(result);
                 });
-            });
+           
            }
            
         });
 		return resp.view('operator',{
 				roomId:'dashboard'
 			});
+    },testFunction: function(req,resp){
+        testFunction();
     }
 
 

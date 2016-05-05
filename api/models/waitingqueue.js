@@ -15,15 +15,15 @@
 	},company_id:{
 		type:'string',
                 size:10,
-                required:true
+                
 	},countrycode:{
 		type:'integer',
 		size:10,
-		required:true
+		
 	},cli:{
 		type:'string',
 		size:20,
-		required:true
+		
 	},startdate:{
 		type:'datetime',
 		size:50,
@@ -36,7 +36,7 @@
 	},operator:{
 		type:'string',
 		size:30,
-		required:true
+		
 	}
 
   }

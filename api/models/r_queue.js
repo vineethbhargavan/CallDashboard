@@ -36,6 +36,26 @@ module.exports = {
 	},duration:{
             type:'integer',
             size:10,
+        },waitingDuration:{
+            type:'integer',
+            size:10,
+        },connectedTime:{
+            type:'integer',
+            size:10,
+        },abandonDuration:{
+            type:'integer',
+            size:10,
+        },operator_id:{
+		type:'string',
+		size:30,
+		
+	},company_id:{
+		type:'string',
+		size:30,
+		
+	}, connectedDuration: {
+            type: 'integer',
+            size: 10
         }
 
   }

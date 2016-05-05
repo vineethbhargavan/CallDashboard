@@ -19,5 +19,9 @@ socket.on('connect', function socketConnected() {
 
 });
 
+google.charts.load('current', {'packages':['gauge']});
+google.charts.setOnLoadCallback(populateGuages);
+
+
 
 

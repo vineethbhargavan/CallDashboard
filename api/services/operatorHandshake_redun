@@ -1,0 +1,151 @@
+var http = require('http');
+var express = require('express');
+var httpapp = express();  // this is for http
+var httpserver = http.createServer(httpapp);
+httpserver.listen(8001);
+//var sockio = require('socket.io');
+var io = require('socket.io')(httpserver, {'pingInterval': 2000, 'pingTimeout': 10000});
+//var io = sockio.listen(httpserver);
+var winston = require('winston');
+var pg = require ('pg');
+var pgConString = "postgres://192.168.0.56/1300_test"
+var pg_client = new pg.Client(pgConString);
+pg_client.connect();
+
+var logLevels = {
+    silly: 0,
+    debug: 1,
+    verbose: 2,
+    info: 3,
+    warn: 4,
+    error: 5
+};
+var loglevel = "info";
+var logger = new (winston.Logger)({
+    transports: [
+        new (winston.transports.Console)({'timestamp': true, levels: logLevels, level: loglevel})
+    ]
+});
+logger.info('loglevel is set to : ', loglevel);
+logger.info('winston log loevels - ', winston.levels);
+
+var count = 0;
+var redis = require("redis")
+        , rclient = redis.createClient();
+
+rclient.on('connect', function () {
+    logger.info(' redis client connected');
+
+});
+
+function setRclient(key, value, name) {
+    rclient.set(key, JSON.stringify(value), function (err, data) {
+        logger.info(name + ' set for ' + key);
+    });
+}
+
+function getRclientValues(key, name, callback) {
+    rclient.get(key, function (err, data) {
+        logger.info(name + '  for ' + key);
+        callback(JSON.parse(data));
+    });
+}
+function setOperatorSocketID(operatorID, socket_id) {
+    getSocketIDOperator(operatorID, function (result) {
+        var socket_array = result;
+        logger.info("getSocketIDOperator" + socket_array);
+        if (socket_array == undefined || socket_array == null) {
+            socket_array = {'sockets': []};
+            socket_array.sockets.push(socket_id);
+        } else {
+            socket_array.sockets.push(socket_id);
+        }
+        setRclient(operatorID, socket_array, 'setOperatorSocketID');
+        setRclient(socket_id, operatorID, 'setSocketIDToOperator');
+    });
+
+}
+
+function getOperatorSocketID(socket_id, callback) {
+    getRclientValues(socket_id, 'getOperatorSocketID', function (result) {
+        callback(result);
+    });
+}
+
+function getSocketIDOperator(operatorID, callback) {
+    getRclientValues(operatorID, 'getSocketIDOperator', function (result) {
+        callback(result);
+    });
+}
+
+io.sockets.on('connection', function (socket) {
+    logger.info("Socket connected", socket.id);
+    socket.emit('handshake', 'connected to node');
+    //io.sockets.in(socket.id).emit('handshake','connected to node'); 
+    socket.on('handshakeResponse', function (data) {
+        logger.info('handshakeResponse from ', data.operator, data.socket_id);
+        logger.info('Count', count++);
+        if (data.operator != undefined) {
+            setOperatorSocketID(data.operator, socket.id);
+        }
+    });
+    socket.on('disconnect', function () {
+        logger.info('socket.on.disconnect for' + socket.id);
+        getOperatorSocketID(socket.id, function (data) {
+            var operatorId = data;
+            getSocketIDOperator(operatorId, function (result) {
+                if (result != undefined) {
+                    var count = result.sockets.length;
+                    var index = result.sockets.indexOf(socket.id);
+                    rclient.del(socket.id, function (err, data) {
+                        logger.info("err" + err);
+                        logger.info("data" + data);
+                    });
+                    if (count != 1) {
+                        result.sockets.splice(index, 1);
+                        setRclient(operatorId, result, 'setOperatorSocketID');
+                    } else {
+                        logger.info("Last Socket for" + operatorId);
+                        result.sockets.splice(index, 1);
+                        setRclient(operatorId, result, 'setOperatorSocketID');
+                        forcelogoutOperator(operatorId);
+                    }
+                }
+            });
+
+
+
+        });
+    });
+
+
+});
+
+function forcelogoutOperator(operatorId) {
+    setTimeout(function () {
+        getSocketIDOperator(operatorId, function (result) {
+            if (result != undefined) {
+                var count = result.sockets.length;
+                if (count == 0) {
+                    rclient.del(operatorId, function (err, data) {
+                        logger.info("err" + err);
+                        logger.info("data" + data);
+                    });
+                    var querytext = "update opprf set isbusy=0,flag=0 where id ='"+operatorId+"'";
+                    pg_client.query(querytext,function(err,result){
+                        logger.info("opprf"+result);
+                    });
+                    var logintableQuery ="update loginout set logoutdate=now(),reason='2' where opid='"+operatorId+"' and oid = (select oid from loginout where opid='"+operatorId+"' order by oid desc limit 1)";
+                    pg_client.query(logintableQuery,function(err,result){
+                        logger.info("logintableQuery"+result);
+                    });
+
+                } else {
+                    logger.info("Operator Reconnected" + operatorId);
+                }
+
+            }
+        });
+
+    }, 10000);
+}

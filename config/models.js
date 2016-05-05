@@ -29,6 +29,35 @@ module.exports.models = {
   * See http://sailsjs.org/#!/documentation/concepts/ORM/model-settings.html  *
   *                                                                          *
   ***************************************************************************/
-  migrate: 'safe'
+  migrate: 'safe',
+    insertOrUpdate: function(key, record, CB){
+    var self = this; // reference for use by callbacks
+    var where = {};
+    //sails.log("record[key"+record[key])
+    where[key] = record[key]; // keys differ by model
+    this.find(where).exec(function findCB(err, found){
+      if(err){
+        CB(err, false);
+      }
+      // did we find an existing record?
+      if(found && found.length){
+        self.update(record[key], record).exec(function(err, updated){
+          if(err) { //returns if an error has occured, ie id doesn't exist.
+            CB(err, false);
+          } else {
+            CB(false, found[0]);
+          }
+        });
+      }else{
+        self.create(record).exec(function(err, created){
+          if(err) { //returns if an error has occured, ie invoice_id doesn't exist.
+            CB(err, false);
+          } else {
+            CB(false, created);
+          }
+        });
+      }
+    });
+  }
 
 };

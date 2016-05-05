@@ -33,20 +33,19 @@ tr.highlight2 td {
   <tr>
     <td>id</td>
     <td>name</td>
-    <td>flag</td>
+    <td>loggedStatus</td>
     <td>mode</td>
   </tr>
   <tr ng-repeat="x in opprf">
     <td>{{ x.id }}</td>
     <td>{{ x.name }}</td>
-    <td>{{ x.flag }}</td>
-    <td>{{ x.mode }}</td>
+    <td>{{ x.loggedStatus }}</td>
+    <td>{{ x.callMode }}</td>
   </tr>
 </table>
 </div> 
 <br>
-<div>
-</div> 
+ 
 <div  ng-controller="queueController" id="queueController"> 
 <table>
 <tr style='bold'>
@@ -69,7 +68,116 @@ tr.highlight2 td {
 </table>
 </div> 
 
+<br>
+ 
+<div  ng-controller="guageController" id="guageController"> 
+<table>
+<tr style='bold'>
+    <td>Date</td>
+    <td>Total calls</td>
+<td>Connected calls</td>
+<td>abandon calls</td>
+    <td>Avg waitingTime </td>
+<td>Avg AbandonTime </td>
+<td>Avg ConnectedTime </td>
+<td>Abandon<10 </td>
+<td>Abandon 11_30 </td>
+<td>Abandon 31_120 </td>
+<td>Abandon 120+ </td>
 
+    
+</tr>
+  <tr>
+    
+    <td>{{ guage.date  }}</td>
+<td>{{ guage.totalIncomingCalls }}</td>
+<td>{{ guage.connectedCount }}</td>
+<td>{{ guage.abandonCount }}</td>
+    <td>{{ guage.waitingTime  }}</td>
+<td>{{ guage.abandonTime  }}</td>
+<td>{{ guage.connectedTime  }}</td>
+<td>{{ guage.abandonCount_10  }}</td>
+<td>{{ guage.abandonCount_30  }}</td>
+<td>{{ guage.abandonCount_120  }}</td>
+<td>{{ guage.abandonCount_140  }}</td>
+
+  </tr>
+</table>
+</div> 
+
+<div  ng-controller="terminatedCallsController" id="terminatedCallsController"> 
+<table>
+<tr style='bold'>
+    
+    <td>queueState</td>
+    <td>callerInfo</td>
+    <td>abandonDuration</td>
+    <td>waitingDuration</td>
+ <td>connectedDuration</td>
+    <td>duration</td>
+</tr>
+  <tr ng-repeat="x in queue | filter: queueState | orderBy:'duration'"   class="{{ (x.duration)> 140 && (x.queueState)== 'finding_op' || (x.queueState)== 'timeout' ? 'highlight' : '' }}" >
+    
+
+    <td>{{ x.queueState }}</td>
+    <td>{{ x.callerInfo }}</td>
+    <td>{{ x.abandonDuration }}</td>
+    <td>{{ x.waitingDuration }}</td>
+    <td>{{ x.connectedDuration }}</td>
+<td>{{ x.duration }}</td>
+  </tr>
+</table>
+</div> 
+
+<div id="chart_div">
+<table>
+<tr>
+<td><div id="responseRate" style="width: 400px; height: 120px;"></div></td>
+<td><div id="waitingTime" style="width: 400px; height: 120px;"></div></td>
+<td><div id="talkingTime" style="width: 400px; height: 120px;"></div></td>
+<td><div id="abandonTime" style="width: 400px; height: 120px;"></div></td>
+</tr>
+</table>
+
+</div>
+<div id="abandonRates" style="width: 800px; height: 120px;"></div>
+<div  ng-controller="callstatsHistoryController" id="callstatsHistoryController"> 
+<table>
+<tr style='bold'>
+    <td>Date</td>
+<td>Date_index</td>
+    <td>Total calls</td>
+<td>Connected calls</td>
+<td>abandon calls</td>
+    <td>Avg waitingTime </td>
+<td>Avg AbandonTime </td>
+<td>Avg ConnectedTime </td>
+<td>Abandon<10 </td>
+<td>Abandon 11_30 </td>
+<td>Abandon 31_120 </td>
+<td>Abandon 120+ </td>
+
+    
+</tr>
+<tr ng-repeat="x in guage" >
+
+    
+    <td>{{ x.dateTime  }}</td>
+<td>{{ x.date  }}</td>
+<td>{{ x.totalIncomingCalls }}</td>
+<td>{{ x.connectedCount }}</td>
+<td>{{ x.abandonCount }}</td>
+    <td>{{ x.waitingTime  }}</td>
+<td>{{ x.abandonTime  }}</td>
+<td>{{ x.connectedTime  }}</td>
+<td>{{ x.abandonCount_10  }}</td>
+<td>{{ x.abandonCount_30  }}</td>
+<td>{{ x.abandonCount_120  }}</td>
+<td>{{ x.abandonCount_140  }}</td>
+
+  </tr>
+</table>
+</div> 
 
 </body>
 </html>
