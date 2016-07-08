@@ -67,6 +67,9 @@ module.exports = {
         },abandonRate:{
             type: 'integer',
             size: 10
+        },instances:{
+            type: 'integer',
+            size: 10
         }
 
     }

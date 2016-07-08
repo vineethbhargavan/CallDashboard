@@ -153,7 +153,7 @@ module.exports = {
 		sails.sockets.join(req, roomId);
                 //testfunction();
                 sails.controllers.operatorstatus.getOperatorDetails(roomId,'noid');
-                sails.controllers.waitingqueue.publishMappedCompany(roomId);
+                //sails.controllers.waitingqueue.publishMappedCompany(roomId);
                                  
                 
 		//getUserNames(roomId);

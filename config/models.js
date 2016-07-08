@@ -45,7 +45,7 @@ module.exports.models = {
           if(err) { //returns if an error has occured, ie id doesn't exist.
             CB(err, false);
           } else {
-            CB(false, found[0]);
+            CB(false, updated[0]);
           }
         });
       }else{
