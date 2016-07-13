@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th , td  {
+  border: 1px solid grey;
+  border-collapse: collapse;
+  padding: 5px;
+}
+table tr:nth-child(odd) {
+  background-color: #f1f1f1;
+}
+table tr:nth-child(even) {
+  background-color: #ffffff;
+}
+
+tr.highlight td {
+    background-color: red;
+}
+
+tr.highlight2 td {
+    background-color: blue;
+}
+</style>
+
+</head>
+
+<body ng-app="myApp" id="body">
+<br>
+
+<div ng-controller="guageController" id="chart_div">
+<table>
+<tr>
+<td><div id="responseRate" style="width: 400px; height: 120px;"></div></td>
+<td><div id="waitingTime" style="width: 400px; height: 120px;"></div></td>
+<td><div id="talkingTime" style="width: 400px; height: 120px;"></div></td>
+<td><div id="timeoutCount" style="width: 400px; height: 120px;"></div></td>
+</tr>
+</table>
+</div>
+<div ng-controller="lineChartController" id="movingAverageCallstat"></div>
+
+</body>
+</html>
+

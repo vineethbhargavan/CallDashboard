@@ -11,8 +11,7 @@ module.exports = {
         dateTime: {
             type: 'integer',
             primaryKey: true,
-            required: true,
-            size: 50
+            required: true
         }, waitingTime: {
             type: 'integer',
             size: 10,
@@ -63,11 +62,22 @@ module.exports = {
             defaultsTo: 0
         },responseRate:{
             type: 'integer',
-            size: 10
+            size: 10,
+            defaultsTo: 0
         },abandonRate:{
             type: 'integer',
-            size: 10
+            size: 10,
+            defaultsTo: 0
         },instances:{
+            type: 'integer',
+            size: 10
+        },timestamp:{
+            type: 'integer'
+        },totalCallsInQueue: {
+            type: 'integer',
+            size: 10,
+            defaultsTo: 0
+        },loggedInOperators:{
             type: 'integer',
             size: 10
         }

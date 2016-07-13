@@ -136,10 +136,13 @@ tr.highlight2 td {
 <td><div id="waitingTime" style="width: 400px; height: 120px;"></div></td>
 <td><div id="talkingTime" style="width: 400px; height: 120px;"></div></td>
 <td><div id="abandonTime" style="width: 400px; height: 120px;"></div></td>
+<td><div id="timeoutCount" style="width: 400px; height: 120px;"></div></td>
 </tr>
 </table>
-
 </div>
+<div ng-controller="lineChartController" id="movingAverageCallstat"></div>
+
+
 <div id="abandonRates" style="width: 800px; height: 120px;"></div>
 <div  ng-controller="callstatsHistoryController" id="callstatsHistoryController"> 
 <table>

@@ -29,6 +29,12 @@ module.exports = {
             type: 'datetime',
             size: 50,
             required: true
+        }, queueEntryTime: {
+            type: 'datetime',
+            size: 50
+        }, callconnectedTime: {
+            type: 'datetime',
+            size: 50
         }, duration: {
             type: 'integer',
             size: 10,

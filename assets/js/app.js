@@ -13,14 +13,16 @@ var socket = io.sails.connect();
 socket.on('connect', function socketConnected() {
 
     console.log('Socket is now connected!');
-      // Join the room
-    socket.post('/room/opprf', {id:'operator',name:'operator'});
-	   
+    // Join the room
+    socket.post('/room/opprf', {id: 'operator', name: 'dashboard'});
+
 
 });
 
-google.charts.load('current', {'packages':['gauge']});
+google.charts.load('current', {'packages': ['gauge','corechart']});
 google.charts.setOnLoadCallback(populateGuages);
+//google.charts.load('current', {'packages': ['corechart']});
+google.charts.setOnLoadCallback(populateMovingAverageCallStats);
 
 
 
