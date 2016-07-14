@@ -43,7 +43,9 @@ module.exports.routes = {
   'post /room/userlist': 'OperatorStatusController.getUserNames',
   '/dashboard': 'OperatorStatusController.launchdashboard',
   '/test': 'OperatorStatusController.testFunction',
-  '/queueStats': 'WaitingqueueController.launchQueuedashboard'
+  '/queueStats': 'WaitingqueueController.launchQueuedashboard',
+  'post /room/queueStats': 'WaitingqueueController.populateQueuedashboard',
+  
 
   /***************************************************************************
   *                                                                          *

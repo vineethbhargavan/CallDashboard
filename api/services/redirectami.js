@@ -1,4 +1,4 @@
-var ami = new require('asterisk-manager')('5038','localhost','escalation','abc123', true);
+var ami = new require('asterisk-manager')('5038','192.168.0.10','dashboard','abc123', true);
 //userevent{"event":"UserEvent","privilege":"user,all","userevent":"TriggerOperator","uniqueid":["1449613043.18"],"channel":"SIP/666-00000012"}
 //var io = require('sails.io.js')( require('socket.io-client') );
 
@@ -6,26 +6,9 @@ var ami = new require('asterisk-manager')('5038','localhost','escalation','abc12
 if(ami!=undefined){
 try{
 	ami.keepConnected();
-ami.on('managerevent', function(evt) {
-        //sails.log("ManagerEvet"+ JSON.stringify(evt));
-//        if(evt.event == "PeerStatus"){
-//                logger.info("Redirect to conf"+evt.username);
-//                sails.controllers.operatorstatus.updateOperatorStatus(evt);
-//        }
-	//sails.controllers.operatorstatus.updateOperatorStatus(evt);
-});
+
 ami.on('userevent', function(evt) {
         sails.log("userevent"+ JSON.stringify(evt))
-        if(evt.userevent == "RedirectToBridge"){
-                sails.log("Redirect to conf"+evt.context);
-                if(evt.context=='conference'){
-                    //sails.controllers.operatorstatus.updateOperatorStatus(evt);
-                }
-        }
-        if(evt.userevent == "UpdateCallStatus"){
-                sails.log("UpdateCallStatus"+evt.operator);
-                //sails.controllers.operatorstatus.updateOperatorStatus(evt);
-        }
         if(evt.userevent == "UpdateQueue"){
                 sails.log("UpdateQueue"+evt.custkey);
                 //sails.controllers.waitingqueue.publishMappedCompany('operator');
@@ -33,7 +16,7 @@ ami.on('userevent', function(evt) {
         }
 });
 
-}catch(err){
+}catch(err){ 
         sails.log('exception occured:During AMI action', err.message);
 }
 }else{

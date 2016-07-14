@@ -14,7 +14,7 @@ socket.on('connect', function socketConnected() {
 
     console.log('Socket is now connected!');
     // Join the room
-    socket.post('/room/opprf', {id: 'operator', name: 'dashboard'});
+    socket.post('/room/queueStats', {id: 'operator', name: 'dashboard'});
 
 
 });

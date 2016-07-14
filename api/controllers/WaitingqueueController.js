@@ -49,6 +49,33 @@ module.exports = {
         });
 
     }, launchQueuedashboard: function (req, resp) {
+        return resp.view('queueStats', {
+            roomId: 'dashboard'
+        });
+//        var queue = {};
+//        populateQueueStats(queue, function (callstats) {
+//            r_responseRate.insertOrUpdate("dateTime", callstats, function (err, updated) {
+//                if (err) { //returns if an error has occured, ie id doesn't exist.
+//                    sails.log('r_responseRate Update Error' + err);
+//                } else {
+//                    sails.log('r_responseRate Updated getCallStats' + JSON.stringify(updated));
+//                    var rrate = {};
+//                    rrate.dateTime = new Date().getTime();
+//                    lastInterval = rrate.dateTime - interval;
+//                    populateMovingAverageStats(rrate, lastInterval);
+//                    return resp.view('queueStats', {
+//                        roomId: 'dashboard'
+//                    });
+//                }
+//            });
+//        });
+
+
+    }, populateQueuedashboard: function (req, resp) {
+        var roomId = req.param('name');
+        sails.log('join request' + roomId);
+        sails.log('SocketID' + sails.sockets.getId(req));
+        sails.sockets.join(req, roomId);
         var queue = {};
         populateQueueStats(queue, function (callstats) {
             r_responseRate.insertOrUpdate("dateTime", callstats, function (err, updated) {
@@ -60,9 +87,6 @@ module.exports = {
                     rrate.dateTime = new Date().getTime();
                     lastInterval = rrate.dateTime - interval;
                     populateMovingAverageStats(rrate, lastInterval);
-                    return resp.view('queueStats', {
-                        roomId: 'dashboard'
-                    });
                 }
             });
         });
