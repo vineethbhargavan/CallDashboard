@@ -70,7 +70,8 @@ module.exports = {
             defaultsTo: 0
         },instances:{
             type: 'integer',
-            size: 10
+            size: 10,
+            defaultsTo: 0
         },timestamp:{
             type: 'integer'
         },totalCallsInQueue: {
@@ -79,7 +80,8 @@ module.exports = {
             defaultsTo: 0
         },loggedInOperators:{
             type: 'integer',
-            size: 10
+            size: 10,
+            defaultsTo: 0
         }
 
     }

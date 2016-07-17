@@ -1,9 +1,24 @@
 
+google.charts.load('current', {'packages': ['gauge', 'corechart']});
+google.charts.setOnLoadCallback(populateGuages);
+//google.charts.load('current', {'packages': ['corechart']});
+google.charts.setOnLoadCallback(populateMovingAverageCallStats);
+
 app.controller('guageController', function ($scope) {
     socket.on('callStats', function (data) {
         $scope.guage = data;
         console.log('guageController' + JSON.stringify(data));
-        populateGuages(data);
+        populateGuages(data, "");
+        $scope.$apply();
+
+    });
+});
+
+app.controller('realTimeGuageController', function ($scope) {
+    socket.on('realTimecallStats', function (data) {
+        $scope.guage = data;
+        console.log('realTimeGuageController' + JSON.stringify(data));
+        populateGuages(data, 'RealTime');
         $scope.$apply();
 
     });
@@ -13,13 +28,21 @@ app.controller('lineChartController', function ($scope) {
     socket.on('movingcallStats', function (data) {
         //$scope.guage = data;
         console.log('lineChartController' + JSON.stringify(data));
-        populateMovingAverageCallStats(data);
+        populateMovingAverageCallStats(data, 'movingAverageCallstat', 'Call stat every 5 min');
         $scope.$apply();
 
     });
 });
+app.controller('realTimelineChartController', function ($scope) {
+    socket.on('realtimecallStats', function (data) {
+        //$scope.guage = data;
+        console.log('lineChartController realtimecallStats' + JSON.stringify(data));
+        populateMovingAverageCallStats(data, 'realtimeCallstat', 'Realtime');
+        $scope.$apply();
 
-function populateResponseRate(data) {
+    });
+});
+function populateResponseRate(data, elementId) {
 
     var data = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
@@ -34,14 +57,14 @@ function populateResponseRate(data) {
         minorTicks: 5
     };
 
-    var chart = new google.visualization.Gauge(document.getElementById('responseRate'));
+    var chart = new google.visualization.Gauge(document.getElementById('responseRate' + elementId));
 
     chart.draw(data, options);
 
 
 }
 
-function populateAverageWaitingTime(data) {
+function populateAverageWaitingTime(data, elementId) {
 
     var data = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
@@ -54,16 +77,16 @@ function populateAverageWaitingTime(data) {
         yellowFrom: 60, yellowTo: 120,
         greenFrom: 0, greenTo: 60,
         minorTicks: 5,
-        max:160
+        max: 160
     };
 
-    var chart = new google.visualization.Gauge(document.getElementById('waitingTime'));
+    var chart = new google.visualization.Gauge(document.getElementById('waitingTime' + elementId));
 
     chart.draw(data, options);
 
 
 }
-function populateAverageConnectedTime(data) {
+function populateAverageConnectedTime(data, elementId) {
 
     var data = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
@@ -76,10 +99,10 @@ function populateAverageConnectedTime(data) {
         yellowFrom: 0, yellowTo: 150,
         greenFrom: 150, greenTo: 210,
         minorTicks: 5,
-        max:400
+        max: 400
     };
 
-    var chart = new google.visualization.Gauge(document.getElementById('talkingTime'));
+    var chart = new google.visualization.Gauge(document.getElementById('talkingTime' + elementId));
 
     chart.draw(data, options);
 
@@ -99,7 +122,7 @@ function populateAverageAbandonTime(data) {
         yellowFrom: 60, yellowTo: 120,
         greenFrom: 0, greenTo: 60,
         minorTicks: 5,
-        max:160
+        max: 160
     };
 
     var chart = new google.visualization.Gauge(document.getElementById('abandonTime'));
@@ -108,7 +131,7 @@ function populateAverageAbandonTime(data) {
 
 
 }
-function populateTimeoutCount(data) {
+function populateTimeoutCount(data, elementId) {
 
     var data = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
@@ -121,10 +144,10 @@ function populateTimeoutCount(data) {
         yellowFrom: 5, yellowTo: 10,
         greenFrom: 0, greenTo: 5,
         minorTicks: 5,
-        max:50
+        max: 50
     };
 
-    var chart = new google.visualization.Gauge(document.getElementById('timeoutCount'));
+    var chart = new google.visualization.Gauge(document.getElementById('timeoutCount' + elementId));
 
     chart.draw(data, options);
 
@@ -156,29 +179,29 @@ function populateAbandonRates(data) {
 
 
 }
-function populateMovingAverageCallStats(callstats) {
+function populateMovingAverageCallStats(callstats, divId, title) {
     var data = new google.visualization.DataTable();
     data.addColumn('datetime', 'time');
     data.addColumn('number', 'TotalCalls');
     data.addColumn('number', 'InQueue');
     data.addColumn('number', 'Connected');
     data.addColumn('number', 'operators');
-    
+
     //var stats = [[2004,10,5,2],[2005,11,6,3],[2006,12,5,5],[2007,13,3,2]];
     //data.addRows(stats);
-    
-    var stats =[];
+
+    var stats = [];
     for (i = 0; i < callstats.length; i++) {
-       var singleStat =[];
-       var timestamp = new Date(callstats[i].dateTime);
-       console.log(timestamp);
-       singleStat.push(timestamp);
-       singleStat.push(callstats[i].totalIncomingCalls);
-       singleStat.push(callstats[i].totalCallsInQueue);
-       singleStat.push(callstats[i].connectedCount);
-       singleStat.push(callstats[i].loggedInOperators);
-       
-       stats.push(singleStat);
+        var singleStat = [];
+        var timestamp = new Date(callstats[i].dateTime);
+        //console.log(timestamp);
+        singleStat.push(timestamp);
+        singleStat.push(callstats[i].totalIncomingCalls);
+        singleStat.push(callstats[i].totalCallsInQueue);
+        singleStat.push(callstats[i].connectedCount);
+        singleStat.push(callstats[i].loggedInOperators);
+
+        stats.push(singleStat);
     }
     data.addRows(stats);
 //    var data = google.visualization.arrayToDataTable([
@@ -190,22 +213,22 @@ function populateMovingAverageCallStats(callstats) {
 //    ]);
 
     var options = {
-        title: 'Call Stats Every 5 min',
+        title: title,
         curveType: 'function',
         legend: {position: 'bottom'}
     };
-    var chart = new google.visualization.LineChart(document.getElementById('movingAverageCallstat'));
+    var chart = new google.visualization.LineChart(document.getElementById(divId));
 
 
     chart.draw(data, options);
 
 
 }
-function populateGuages(data) {
-    populateResponseRate(data);
-    populateAverageWaitingTime(data);
-    populateAverageConnectedTime(data);
-    populateTimeoutCount(data);
+function populateGuages(data, elementId) {
+    populateResponseRate(data, elementId);
+    populateAverageWaitingTime(data, elementId);
+    populateAverageConnectedTime(data, elementId);
+    populateTimeoutCount(data, elementId);
     //populateAverageAbandonTime(data);
     //populateAbandonRates(data);
 
@@ -233,5 +256,6 @@ function populateGuages(data) {
 //
 //
 //}
+
 
 
