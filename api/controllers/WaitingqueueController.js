@@ -99,7 +99,7 @@ module.exports = {
     }
 };
 //moving average
-var interval = 60000;
+var interval = 900000;
 var realtimeFetchInterval = 0;
 var roomId = "dashboard";
 var movingAvg = setInterval(function () {
@@ -265,21 +265,19 @@ function populateQueueStats(queue, callback) {
             rrate.timestamp = rrate.dateTime;
             r_responseRate.insertOrUpdate("dateTime", rrate, function (err, callstats) {
                 sails.log.info("Initialised RR object" + JSON.stringify(callstats));
-                Opprf.count({where: {flag: 1}}).exec(function (err, operators) {
+                Opprf.count({where: {flag: 1, id: {'!': ['1025', '1050']}}}).exec(function (err, operators) {
                     callstats.loggedInOperators = operators;
                     r_queue.find({queueState: {'!': 'dormant'}}).exec(function (err, qresult) {
                         callstats.totalIncomingCalls = qresult.length;
                         for (i = 0; i < qresult.length; i++) {
                             var queue = qresult[i];
                             sails.log.info("populateQueueStats:" + JSON.stringify(queue));
-                            if (queue.queueState != "entrypoint" && queue.queueState != "terminated" && queue.queueState != "connected") {
-                                callstats.totalCallsInQueue++;
-                            }
                             if (queue.queueState == "timeout") {
                                 callstats.timeoutCount++;
                                 callstats.timeoutTime = (callstats.timeoutTime + queue.timeoutDuration);
-                            }
-                            if ((queue.previousState == "entrypoint" || queue.previousState == "finding_op" || queue.previousState == "calling_op") && queue.queueState == "terminated") {
+                            } else if (queue.queueState != "entrypoint" && queue.queueState != "terminated" && queue.queueState != "connected") {
+                                callstats.totalCallsInQueue++;
+                            } else if ((queue.previousState == "entrypoint" || queue.previousState == "finding_op" || queue.previousState == "calling_op") && queue.queueState == "terminated") {
                                 callstats.abandonCount++;
                                 if (queue.abandonDuration > 140) {
                                     callstats.abandonCount_140++;
@@ -296,21 +294,18 @@ function populateQueueStats(queue, callback) {
 //                                queue.queueState = "dormant";
 //                                updateQueue(queue);
 
-                            }
-                            if (queue.queueState == "connected") {
+                            } else if (queue.queueState == "connected") {
                                 callstats.connectedCount++;
                                 callstats.waitingTime = (callstats.waitingTime + queue.waitingDuration);
                                 sails.log.info("callstats.waitingTime" + callstats.waitingTime);
                                 //callstats.responseRate = (callstats.connectedCount / (callstats.connectedCount + callstats.timeoutCount)) * 100;
 
-                            }
-                            if (queue.previousState == "connected" && queue.queueState == "terminated") {
+                            } else if (queue.previousState == "connected" && queue.queueState == "terminated") {
                                 callstats.connectedTime = (callstats.connectedTime + queue.connectedDuration);
                                 //queue.previousState = queue.queueState;
 //                                queue.queueState = "dormant";
 //                                updateQueue(queue);
-                            } 
-                            if (queue.queueState == "terminated") {
+                            } else if (queue.queueState == "terminated") {
                                 sails.log.info("populateQueueStats: End of Queue life" + JSON.stringify(queue));
                                 queue.queueState = "dormant";
                                 updateQueue(queue);
@@ -365,7 +360,7 @@ function updateMovingAverageSnapshots(mv_avg) {
             sails.log.info('mv_responseRate Update Error' + err);
         } else {
             sails.log.info('mv_responseRate Updated' + JSON.stringify(mvUpdated));
-            sails.sockets.broadcast(roomId, 'callStats', mvUpdated);
+            sails.sockets.broadcast(roomId, 'movingCallStats', mvUpdated);
             publishMovingAverageStats(mvUpdated);
         }
     });
@@ -373,17 +368,20 @@ function updateMovingAverageSnapshots(mv_avg) {
 
 function publishMovingAverageStats(mvAverage) {
     var currentTime = new Date().getTime();
-    var previousInterval = currentTime - 8640000;
+    var previousInterval = currentTime - 86400000;
     sails.log.info('publishMovingAverageStats' + JSON.stringify(mvAverage));
     mv_responseRate.find({timestamp: {'>': previousInterval, '<': currentTime}}).exec(function (err, qresult) {
-        sails.sockets.broadcast(roomId, 'movingcallStats', qresult);
+        sails.log.info('publishMovingAverageStats Array List' + JSON.stringify(qresult));
+        sails.sockets.broadcast(roomId, 'movingSystemStats', qresult);
     });
 }
 function publishRealtimeQueueStats(qStats) {
+    var currentTime = new Date().getTime();
+    var previousInterval = currentTime - 600000;
     sails.log.info('publishRealtimeQueueStats' + JSON.stringify(qStats));
     sails.sockets.broadcast(roomId, 'realTimecallStats', qStats);
-    r_responseRate.find().exec(function (err, qresult) {
-        sails.sockets.broadcast(roomId, 'realtimecallStats', qresult);
+    r_responseRate.find({timestamp: {'>': previousInterval, '<': currentTime}}).exec(function (err, qresult) {
+        sails.sockets.broadcast(roomId, 'realtimeSystemStats', qresult);
     });
 }
 //function getCallStats(callback) {
@@ -457,23 +455,21 @@ function handleQueueTransition(queue, queueToUpdate, callback) {
         if (queueToUpdate.waitingtype == "timeout") {
             queue.timeoutDuration = (currentTime.getTime() - queue.queueEntryTime.getTime()) / 1000;
             sails.log.info("handleQueueTransition: timeout" + queue.timeoutDuration);
-        }
-        if ((queue.queueState == "entrypoint" || queue.queueState == "finding_op" || queue.queueState == "calling_op") && queueToUpdate.waitingtype == "terminated") {
+        } else if ((queue.queueState == "entrypoint" || queue.queueState == "finding_op" || queue.queueState == "calling_op") && queueToUpdate.waitingtype == "terminated") {
             queue.abandonDuration = (currentTime.getTime() - queue.queueEntryTime.getTime()) / 1000;
             sails.log.info("handleQueueTransition: abandonDuration" + queue.abandonDuration);
-        }
-        if (queue.queueState == "calling_op" && queueToUpdate.waitingtype == "connected") {
+        } else if (queue.queueState == "calling_op" && queueToUpdate.waitingtype == "connected") {
             queue.waitingDuration = (currentTime.getTime() - queue.queueEntryTime.getTime()) / 1000;
             queue.callconnectedTime = new Date();
             sails.log.info("handleQueueTransition: waitingDuration" + queue.waitingDuration);
-        }
-        if (queue.queueState == "connected" && queueToUpdate.waitingtype == "terminated") {
+        } else if (queue.queueState == "connected" && queueToUpdate.waitingtype == "terminated") {
             queue.connectedDuration = (currentTime.getTime() - queue.callconnectedTime.getTime()) / 1000;
             sails.log.info("handleQueueTransition: connectedDuration" + queue.connectedDuration);
-        }
-        if (queue.queueState == "entrypoint" && queueToUpdate.waitingtype == "finding_op") {
+        } else if (queue.queueState == "entrypoint" && queueToUpdate.waitingtype == "finding_op") {
             queue.queueEntryTime = new Date();
             sails.log.info("handleQueueTransition: queueEntryTime" + queue.queueEntryTime);
+        } else {
+            sails.log.info("handleQueueTransition: Ignored State" + JSON.stringify(queue));
         }
 
         if (queue.queueState != "dormant") {

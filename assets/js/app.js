@@ -13,12 +13,9 @@ var socket = io.sails.connect();
 
 socket.on('connect', function socketConnected() {
 
-    console.log('Socket is now connected!');
-
+    console.log('Socket is now connected!'+socket.id);
     // Join the room
     socket.post('/room/queueStats', {id: 'operator', name: 'dashboard'});
-
-
 });
 
 

@@ -1,11 +1,13 @@
 
-google.charts.load('current', {'packages': ['gauge', 'corechart']});
+google.charts.load('current', {'packages': ['gauge', 'corechart','table']});
 google.charts.setOnLoadCallback(populateGuages);
 //google.charts.load('current', {'packages': ['corechart']});
-google.charts.setOnLoadCallback(populateMovingAverageCallStats);
+google.charts.setOnLoadCallback(populateSystemStats);
+google.charts.setOnLoadCallback(populateSystemSnapShot);
+
 
 app.controller('guageController', function ($scope) {
-    socket.on('callStats', function (data) {
+    socket.on('movingCallStats', function (data) {
         $scope.guage = data;
         console.log('guageController' + JSON.stringify(data));
         populateGuages(data, "");
@@ -19,29 +21,47 @@ app.controller('realTimeGuageController', function ($scope) {
         $scope.guage = data;
         console.log('realTimeGuageController' + JSON.stringify(data));
         populateGuages(data, 'RealTime');
+        populateSystemSnapShot(data);
         $scope.$apply();
 
     });
 });
 
 app.controller('lineChartController', function ($scope) {
-    socket.on('movingcallStats', function (data) {
+    socket.on('movingSystemStats', function (data) {
         //$scope.guage = data;
         console.log('lineChartController' + JSON.stringify(data));
-        populateMovingAverageCallStats(data, 'movingAverageCallstat', 'Call stat every 5 min');
+        populateSystemStats(data, 'movingAverageCallstat', 'Call stat every 15 min-24hrs history');
         $scope.$apply();
 
     });
 });
 app.controller('realTimelineChartController', function ($scope) {
-    socket.on('realtimecallStats', function (data) {
+    socket.on('realtimeSystemStats', function (data) {
         //$scope.guage = data;
-        console.log('lineChartController realtimecallStats' + JSON.stringify(data));
-        populateMovingAverageCallStats(data, 'realtimeCallstat', 'Realtime');
+        console.log('lineChartController realtimeSystemStats' + JSON.stringify(data));
+        populateSystemStats(data, 'realtimeCallstat', 'Realtime -(1 hr snapshot)');
+        
         $scope.$apply();
 
     });
 });
+function populateSystemSnapShot(stats) {
+console.log('populateSystemSnapShot' + JSON.stringify(stats));
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Entities');
+    data.addColumn('number', 'Values');
+    data.addRows([
+        ['TotalCalls', stats.totalIncomingCalls],
+        ['InQueue', stats.totalCallsInQueue],
+        ['Connected', stats.connectedCount],
+        ['LoogedInOperators', stats.loggedInOperators]
+    ]);
+
+    var table = new google.visualization.Table(document.getElementById('systemStatsSnapshot'));
+
+    table.draw(data, {showRowNumber: true, width: '100%', height: '100%'});
+}
 function populateResponseRate(data, elementId) {
 
     var data = google.visualization.arrayToDataTable([
@@ -179,7 +199,7 @@ function populateAbandonRates(data) {
 
 
 }
-function populateMovingAverageCallStats(callstats, divId, title) {
+function populateSystemStats(callstats, divId, title) {
     var data = new google.visualization.DataTable();
     data.addColumn('datetime', 'time');
     data.addColumn('number', 'TotalCalls');
@@ -224,7 +244,10 @@ function populateMovingAverageCallStats(callstats, divId, title) {
 
 
 }
+
+
 function populateGuages(data, elementId) {
+    console.log('populateGuages' + elementId + "Values:" + JSON.stringify(data));
     populateResponseRate(data, elementId);
     populateAverageWaitingTime(data, elementId);
     populateAverageConnectedTime(data, elementId);
