@@ -287,7 +287,7 @@ function populateQueueStats(queue, callback) {
                                     callstats.abandonCount_120++;
                                 } else if (queue.abandonDuration > 10 && queue.abandonDuration < 31) {
                                     callstats.abandonCount_30++;
-                                } else if (queue.abandonDuration < 11) {
+                                } else {
                                     callstats.abandonCount_10++;
                                 }
                                 callstats.abandonTime = (callstats.abandonTime + queue.abandonDuration);
