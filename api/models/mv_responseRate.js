@@ -13,59 +13,59 @@ module.exports = {
             primaryKey: true,
             required: true
         }, waitingTime: {
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         }, abandonTime: {
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         }, connectedTime: {
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         }, connectedCount: {
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         }, abandonCount: {
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         }, totalIncomingCalls: {
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         }, abandonCount_10: {
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         }, abandonCount_30: {
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         }, abandonCount_120: {
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         }, abandonCount_140: {
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         }, timeoutCount: {
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         }, timeoutTime: {
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         },responseRate:{
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         },abandonRate:{
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         },instances:{
@@ -75,11 +75,11 @@ module.exports = {
         },timestamp:{
             type: 'integer'
         },totalCallsInQueue: {
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         },loggedInOperators:{
-            type: 'float',
+            type: 'integer',
             size: 10,
             defaultsTo: 0
         }

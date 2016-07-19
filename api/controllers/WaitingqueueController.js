@@ -275,9 +275,11 @@ function populateQueueStats(queue, callback) {
                             if (queue.queueState == "timeout") {
                                 callstats.timeoutCount++;
                                 callstats.timeoutTime = (callstats.timeoutTime + queue.timeoutDuration);
-                            } else if (queue.queueState != "entrypoint" && queue.queueState != "terminated" && queue.queueState != "connected") {
+                            } 
+                            if (queue.queueState != "entrypoint" && queue.queueState != "terminated" && queue.queueState != "connected") {
                                 callstats.totalCallsInQueue++;
-                            } else if ((queue.previousState == "entrypoint" || queue.previousState == "finding_op" || queue.previousState == "calling_op") && queue.queueState == "terminated") {
+                            } 
+                            if ((queue.previousState == "entrypoint" || queue.previousState == "finding_op" || queue.previousState == "calling_op") && queue.queueState == "terminated") {
                                 callstats.abandonCount++;
                                 if (queue.abandonDuration > 140) {
                                     callstats.abandonCount_140++;
@@ -294,18 +296,21 @@ function populateQueueStats(queue, callback) {
 //                                queue.queueState = "dormant";
 //                                updateQueue(queue);
 
-                            } else if (queue.queueState == "connected") {
+                            } 
+                            if (queue.queueState == "connected") {
                                 callstats.connectedCount++;
                                 callstats.waitingTime = (callstats.waitingTime + queue.waitingDuration);
                                 sails.log.info("callstats.waitingTime" + callstats.waitingTime);
                                 //callstats.responseRate = (callstats.connectedCount / (callstats.connectedCount + callstats.timeoutCount)) * 100;
 
-                            } else if (queue.previousState == "connected" && queue.queueState == "terminated") {
+                            }
+                            if(queue.previousState == "connected" && queue.queueState == "terminated") {
                                 callstats.connectedTime = (callstats.connectedTime + queue.connectedDuration);
                                 //queue.previousState = queue.queueState;
 //                                queue.queueState = "dormant";
 //                                updateQueue(queue);
-                            } else if (queue.queueState == "terminated") {
+                            }                            
+                            if (queue.queueState == "terminated") {
                                 sails.log.info("populateQueueStats: End of Queue life" + JSON.stringify(queue));
                                 queue.queueState = "dormant";
                                 updateQueue(queue);
