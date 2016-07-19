@@ -199,6 +199,7 @@ function populateAbandonRates(data) {
 
 
 }
+
 function populateSystemStats(callstats, divId, title) {
     var data = new google.visualization.DataTable();
     data.addColumn('datetime', 'time');
@@ -206,6 +207,7 @@ function populateSystemStats(callstats, divId, title) {
     data.addColumn('number', 'InQueue');
     data.addColumn('number', 'Connected');
     data.addColumn('number', 'operators');
+    data.addColumn('number', 'responseRate X 2');
 
     //var stats = [[2004,10,5,2],[2005,11,6,3],[2006,12,5,5],[2007,13,3,2]];
     //data.addRows(stats);
@@ -220,21 +222,16 @@ function populateSystemStats(callstats, divId, title) {
         singleStat.push(callstats[i].totalCallsInQueue);
         singleStat.push(callstats[i].connectedCount);
         singleStat.push(callstats[i].loggedInOperators);
+        singleStat.push((callstats[i].responseRate) / 2);
 
         stats.push(singleStat);
     }
     data.addRows(stats);
-//    var data = google.visualization.arrayToDataTable([
-//        ['Year', 'Sales', 'Expenses'],
-//        ['2004', 1000, 400],
-//        ['2005', 1170, 460],
-//        ['2006', 660, 1120],
-//        ['2007', 1030, 540]
-//    ]);
 
     var options = {
         title: title,
         curveType: 'function',
+        vAxis: {ticks: [{v: 0, f: '0'}, {v: 2, f: '2'}, {v: 5, f: '5'}, {v: 10, f: '10'}, {v: 15, f: '15'}, {v: 20, f: '20'}, {v: 30, f: '60%'}, {v: 40, f: '80%'}, {v: 50, f: '100%'}]},
         legend: {position: 'bottom'}
     };
     var chart = new google.visualization.LineChart(document.getElementById(divId));
@@ -244,8 +241,6 @@ function populateSystemStats(callstats, divId, title) {
 
 
 }
-
-
 function populateGuages(data, elementId) {
     console.log('populateGuages' + elementId + "Values:" + JSON.stringify(data));
     populateResponseRate(data, elementId);
