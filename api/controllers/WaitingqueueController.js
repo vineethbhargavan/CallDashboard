@@ -60,7 +60,7 @@ module.exports = {
         var roomId = req.param('name');
         sails.log.info('join request' + roomId);
         sails.log.info('SocketID' + sails.sockets.getId(req));
-        sails.sockets.join(req, 'dashboard');
+        sails.sockets.join(req, roomId);
         var queue = {};
         populateQueueStats(queue, function (callstats) {
             r_responseRate.insertOrUpdate("dateTime", callstats, function (err, updated) {
