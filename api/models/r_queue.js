@@ -33,11 +33,11 @@ module.exports = {
             size: 50,
             required: true
         }, queueEntryTime: {
-            type: 'datetime',
+            type: 'integer',
             size: 50,
             defaultsTo: '0'
         }, callconnectedTime: {
-            type: 'datetime',
+            type: 'integer',
             size: 50,
             defaultsTo: '0'
         }, duration: {

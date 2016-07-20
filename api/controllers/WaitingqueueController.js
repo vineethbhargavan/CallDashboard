@@ -54,30 +54,13 @@ module.exports = {
         return resp.view('queueStats', {
             roomId: 'dashboard'
         });
-//        var queue = {};
-//        populateQueueStats(queue, function (callstats) {
-//            r_responseRate.insertOrUpdate("dateTime", callstats, function (err, updated) {
-//                if (err) { //returns if an error has occured, ie id doesn't exist.
-//                    sails.log.info('r_responseRate Update Error' + err);
-//                } else {
-//                    sails.log.info('r_responseRate Updated getCallStats' + JSON.stringify(updated));
-//                    var rrate = {};
-//                    rrate.dateTime = new Date().getTime();
-//                    lastInterval = rrate.dateTime - interval;
-//                    populateMovingAverageStats(rrate, lastInterval);
-//                    return resp.view('queueStats', {
-//                        roomId: 'dashboard'
-//                    });
-//                }
-//            });
-//        });
 
 
     }, populateQueuedashboard: function (req, resp) {
         var roomId = req.param('name');
         sails.log.info('join request' + roomId);
         sails.log.info('SocketID' + sails.sockets.getId(req));
-        sails.sockets.join(req, roomId);
+        sails.sockets.join(req, 'dashboard');
         var queue = {};
         populateQueueStats(queue, function (callstats) {
             r_responseRate.insertOrUpdate("dateTime", callstats, function (err, updated) {
@@ -275,10 +258,10 @@ function populateQueueStats(queue, callback) {
                             if (queue.queueState == "timeout") {
                                 callstats.timeoutCount++;
                                 callstats.timeoutTime = (callstats.timeoutTime + queue.timeoutDuration);
-                            } 
+                            }
                             if (queue.queueState != "entrypoint" && queue.queueState != "terminated" && queue.queueState != "connected") {
                                 callstats.totalCallsInQueue++;
-                            } 
+                            }
                             if ((queue.previousState == "entrypoint" || queue.previousState == "finding_op" || queue.previousState == "calling_op") && queue.queueState == "terminated") {
                                 callstats.abandonCount++;
                                 if (queue.abandonDuration > 140) {
@@ -296,7 +279,7 @@ function populateQueueStats(queue, callback) {
 //                                queue.queueState = "dormant";
 //                                updateQueue(queue);
 
-                            } 
+                            }
                             if (queue.queueState == "connected") {
                                 callstats.connectedCount++;
                                 callstats.waitingTime = (callstats.waitingTime + queue.waitingDuration);
@@ -304,12 +287,12 @@ function populateQueueStats(queue, callback) {
                                 //callstats.responseRate = (callstats.connectedCount / (callstats.connectedCount + callstats.timeoutCount)) * 100;
 
                             }
-                            if(queue.previousState == "connected" && queue.queueState == "terminated") {
+                            if (queue.previousState == "connected" && queue.queueState == "terminated") {
                                 callstats.connectedTime = (callstats.connectedTime + queue.connectedDuration);
                                 //queue.previousState = queue.queueState;
 //                                queue.queueState = "dormant";
 //                                updateQueue(queue);
-                            }                            
+                            }
                             if (queue.queueState == "terminated") {
                                 sails.log.info("populateQueueStats: End of Queue life" + JSON.stringify(queue));
                                 queue.queueState = "dormant";
@@ -342,6 +325,7 @@ function populateQueueStats(queue, callback) {
 
                     });
                 });
+                //callback(callstats);
             });
         }
     } catch (err) {
@@ -455,24 +439,25 @@ function populateQueueObject(queue, queueToUpdate, callback) {
 }
 function handleQueueTransition(queue, queueToUpdate, callback) {
     try {
-        var currentTime = new Date();
         sails.log.info("handleQueueTransition:" + queue.queueState + ":" + queueToUpdate.waitingtype);
-        if (queueToUpdate.waitingtype == "timeout") {
-            queue.timeoutDuration = (currentTime.getTime() - queue.queueEntryTime.getTime()) / 1000;
-            sails.log.info("handleQueueTransition: timeout" + queue.timeoutDuration);
-        } else if ((queue.queueState == "entrypoint" || queue.queueState == "finding_op" || queue.queueState == "calling_op") && queueToUpdate.waitingtype == "terminated") {
-            queue.abandonDuration = (currentTime.getTime() - queue.queueEntryTime.getTime()) / 1000;
-            sails.log.info("handleQueueTransition: abandonDuration" + queue.abandonDuration);
-        } else if (queue.queueState == "calling_op" && queueToUpdate.waitingtype == "connected") {
-            queue.waitingDuration = (currentTime.getTime() - queue.queueEntryTime.getTime()) / 1000;
-            queue.callconnectedTime = new Date();
-            sails.log.info("handleQueueTransition: waitingDuration" + queue.waitingDuration);
-        } else if (queue.queueState == "connected" && queueToUpdate.waitingtype == "terminated") {
-            queue.connectedDuration = (currentTime.getTime() - queue.callconnectedTime.getTime()) / 1000;
-            sails.log.info("handleQueueTransition: connectedDuration" + queue.connectedDuration);
-        } else if (queue.queueState == "entrypoint" && queueToUpdate.waitingtype == "finding_op") {
-            queue.queueEntryTime = new Date();
+        queueToUpdate.current_time = parseInt(queueToUpdate.current_time);
+        queueToUpdate.previous_state_time = parseInt(queueToUpdate.previous_state_time);
+        if (queueToUpdate.waitingtype == "finding_op") {
+            queue.queueEntryTime = queueToUpdate.current_time;
             sails.log.info("handleQueueTransition: queueEntryTime" + queue.queueEntryTime);
+        } else if (queueToUpdate.waitingtype == "connected") {
+            queue.waitingDuration = queueToUpdate.current_time - queueToUpdate.previous_state_time;
+            queue.callconnectedTime = queueToUpdate.current_time;
+            sails.log.info("handleQueueTransition: waitingDuration" + queue.waitingDuration);
+        } else if (queueToUpdate.waitingtype == "terminated" && queue.queueState == "connected") {
+            queue.connectedDuration = queueToUpdate.current_time - queueToUpdate.previous_state_time;
+            sails.log.info("handleQueueTransition: connectedDuration" + queue.connectedDuration);
+        } else if (queueToUpdate.waitingtype == "terminated" && (queue.queueState == "entrypoint" || queue.queueState == "finding_op" || queue.queueState == "calling_op")) {
+            queue.abandonDuration = queueToUpdate.current_time - queueToUpdate.previous_state_time;
+            sails.log.info("handleQueueTransition: abandonDuration" + queue.abandonDuration);
+        } else if (queueToUpdate.waitingtype == "timeout") {
+            queue.timeoutDuration = queueToUpdate.current_time - queue.queueEntryTime;
+            sails.log.info("handleQueueTransition: timeout" + queue.timeoutDuration);
         } else {
             sails.log.info("handleQueueTransition: Ignored State" + JSON.stringify(queue));
         }

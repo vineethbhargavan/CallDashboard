@@ -1,53 +1,81 @@
 
-google.charts.load('current', {'packages': ['gauge', 'corechart','table']});
-google.charts.setOnLoadCallback(populateGuages);
-//google.charts.load('current', {'packages': ['corechart']});
-google.charts.setOnLoadCallback(populateSystemStats);
-google.charts.setOnLoadCallback(populateSystemSnapShot);
+
+//google.charts.setOnLoadCallback(populateSystemSnapShot);
+//google.charts.setOnLoadCallback(populateSystemSnapShotRealtime);
+//google.charts.setOnLoadCallback(populateGuages);
+////google.charts.load('current', {'packages': ['corechart']});
+//google.charts.setOnLoadCallback(populateSystemStats);
+
 
 
 app.controller('guageController', function ($scope) {
     socket.on('movingCallStats', function (data) {
-        $scope.guage = data;
+        //google.charts.setOnLoadCallback(populateSystemSnapShot);
+        //google.charts.setOnLoadCallback(populateGuages);
+        //$scope.guage = data;
         console.log('guageController' + JSON.stringify(data));
+        populateSystemSnapShot(data);
         populateGuages(data, "");
-        $scope.$apply();
+        
+        //$scope.$apply();
 
     });
 });
 
 app.controller('realTimeGuageController', function ($scope) {
+
     socket.on('realTimecallStats', function (data) {
-        $scope.guage = data;
+        //google.charts.setOnLoadCallback(populateSystemSnapShot);
+        //google.charts.setOnLoadCallback(populateGuages);
+        //$scope.guage = data;
         console.log('realTimeGuageController' + JSON.stringify(data));
+        populateSystemSnapShotRealtime(data);
         populateGuages(data, 'RealTime');
-        populateSystemSnapShot(data);
-        $scope.$apply();
+        
+        //$scope.$apply();
 
     });
 });
 
 app.controller('lineChartController', function ($scope) {
     socket.on('movingSystemStats', function (data) {
+        //google.charts.setOnLoadCallback(populateSystemStats);
         //$scope.guage = data;
-        console.log('lineChartController' + JSON.stringify(data));
+        //console.log('lineChartController' + JSON.stringify(data));
         populateSystemStats(data, 'movingAverageCallstat', 'Call stat every 15 min-24hrs history');
-        $scope.$apply();
+        //$scope.$apply();
 
     });
 });
 app.controller('realTimelineChartController', function ($scope) {
     socket.on('realtimeSystemStats', function (data) {
+        //google.charts.setOnLoadCallback(populateSystemStats);
         //$scope.guage = data;
-        console.log('lineChartController realtimeSystemStats' + JSON.stringify(data));
+        //console.log('lineChartController realtimeSystemStats' + JSON.stringify(data));
         populateSystemStats(data, 'realtimeCallstat', 'Realtime -(1 hr snapshot)');
-        
-        $scope.$apply();
+
+       // $scope.$apply();
 
     });
 });
+function populateSystemSnapShotRealtime(stats) {
+    console.log('populateSystemSnapShot' + JSON.stringify(stats));
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Entities');
+    data.addColumn('number', 'Values');
+    data.addRows([
+        ['TotalCalls', stats.totalIncomingCalls],
+        ['InQueue', stats.totalCallsInQueue],
+        ['Connected', stats.connectedCount],
+        ['LoogedInOperators', stats.loggedInOperators]
+    ]);
+
+    var table = new google.visualization.Table(document.getElementById('systemStatsSnapshotRealTime'));
+
+    table.draw(data, {showRowNumber: true, width: '100%', height: '100%'});
+}
 function populateSystemSnapShot(stats) {
-console.log('populateSystemSnapShot' + JSON.stringify(stats));
+    console.log('populateSystemSnapShot' + JSON.stringify(stats));
     var data = new google.visualization.DataTable();
     data.addColumn('string', 'Entities');
     data.addColumn('number', 'Values');
@@ -62,11 +90,11 @@ console.log('populateSystemSnapShot' + JSON.stringify(stats));
 
     table.draw(data, {showRowNumber: true, width: '100%', height: '100%'});
 }
-function populateResponseRate(data, elementId) {
+function populateResponseRate(stats, elementId) {
 
     var data = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
-        ['ResponseRate', data.responseRate]
+        ['ResponseRate', stats.responseRate]
     ]);
 
     var options = {
@@ -84,11 +112,11 @@ function populateResponseRate(data, elementId) {
 
 }
 
-function populateAverageWaitingTime(data, elementId) {
+function populateAverageWaitingTime(stats, elementId) {
 
     var data = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
-        ['WaitingTime', data.waitingTime]
+        ['WaitingTime', stats.waitingTime]
     ]);
 
     var options = {
@@ -106,11 +134,11 @@ function populateAverageWaitingTime(data, elementId) {
 
 
 }
-function populateAverageConnectedTime(data, elementId) {
+function populateAverageConnectedTime(stats, elementId) {
 
     var data = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
-        ['TalkingTime', data.connectedTime]
+        ['TalkingTime', stats.connectedTime]
     ]);
 
     var options = {
@@ -129,11 +157,11 @@ function populateAverageConnectedTime(data, elementId) {
 
 }
 
-function populateAverageAbandonTime(data) {
+function populateAverageAbandonTime(stats) {
 
     var data = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
-        ['AbandonTime', data.abandonTime]
+        ['AbandonTime', stats.abandonTime]
     ]);
 
     var options = {
@@ -151,11 +179,11 @@ function populateAverageAbandonTime(data) {
 
 
 }
-function populateTimeoutCount(data, elementId) {
+function populateTimeoutCount(stats, elementId) {
 
     var data = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
-        ['timeoutCount', data.timeoutCount]
+        ['timeoutCount', stats.timeoutCount]
     ]);
 
     var options = {
@@ -174,15 +202,15 @@ function populateTimeoutCount(data, elementId) {
 
 }
 
-function populateAbandonRates(data) {
+function populateAbandonRates(stats) {
 
     var data = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
-        ['AbandonRate', (data.abandonCount / data.totalIncomingCalls) * 100],
-        ['Abandon<10', (data.abandonCount_10 / data.abandonCount) * 100],
-        ['Abandon 11_30', (data.abandonCount_30 / data.abandonCount) * 100],
-        ['Abandon 31_120', (data.abandonCount_120 / data.abandonCount) * 100],
-        ['Abandon 120+ ', (data.abandonCount_140 / data.abandonCount) * 100]
+        ['AbandonRate', (stats.abandonCount / stats.totalIncomingCalls) * 100],
+        ['Abandon<10', (stats.abandonCount_10 / stats.abandonCount) * 100],
+        ['Abandon 11_30', (stats.abandonCount_30 / stats.abandonCount) * 100],
+        ['Abandon 31_120', (stats.abandonCount_120 / stats.abandonCount) * 100],
+        ['Abandon 120+ ', (stats.abandonCount_140 / stats.abandonCount) * 100]
     ]);
 
     var options = {
@@ -206,6 +234,7 @@ function populateSystemStats(callstats, divId, title) {
     data.addColumn('number', 'InQueue');
     data.addColumn('number', 'Connected');
     data.addColumn('number', 'operators');
+    data.addColumn('number', 'responseRate X 2');
 
     //var stats = [[2004,10,5,2],[2005,11,6,3],[2006,12,5,5],[2007,13,3,2]];
     //data.addRows(stats);
@@ -220,6 +249,7 @@ function populateSystemStats(callstats, divId, title) {
         singleStat.push(callstats[i].totalCallsInQueue);
         singleStat.push(callstats[i].connectedCount);
         singleStat.push(callstats[i].loggedInOperators);
+        singleStat.push((callstats[i].responseRate) / 2);
 
         stats.push(singleStat);
     }
@@ -235,6 +265,7 @@ function populateSystemStats(callstats, divId, title) {
     var options = {
         title: title,
         curveType: 'function',
+        vAxis: {ticks: [{v: 0, f: '0'}, {v: 2, f: '2'}, {v: 5, f: '5'}, {v: 10, f: '10'}, {v: 15, f: '15'}, {v: 20, f: '20'}, {v: 30, f: '60%'}, {v: 40, f: '80%'}, {v: 50, f: '100%'}]},
         legend: {position: 'bottom'}
     };
     var chart = new google.visualization.LineChart(document.getElementById(divId));

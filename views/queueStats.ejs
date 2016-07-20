@@ -28,33 +28,36 @@ tr.highlight2 td {
 <body ng-app="myApp" id="body">
 <br>
 
-<div ng-controller="guageController" id="chart_div">
+<div ng-controller="guageController" id="guageController">
 <table>
+<h>Stats over the last 15 min</h>
 <tr>
+<td><div id="systemStatsSnapshot" style="width: 400px; height: 120px;"></div></td>
 <td><div id="responseRate" style="width: 400px; height: 120px;"></div></td>
 <td><div id="waitingTime" style="width: 400px; height: 120px;"></div></td>
 <td><div id="talkingTime" style="width: 400px; height: 120px;"></div></td>
-<td><div id="timeoutCount" style="width: 400px; height: 120px;"></div></td>
 </tr>
 </table>
 </div>
+
 <div ng-controller="lineChartController" id="movingAverageCallstat"></div>
+
 <br>
 <div ng-controller="realTimelineChartController" id="realtimeCallstat"></div>
 <br>
-<div ng-controller="realTimeGuageController" id="chart_div">
+
+<div ng-controller="realTimeGuageController" id="realTimeGuageController">
 <table>
+<h>RealTime Stats</h>
 <tr>
-<td><div id="systemStatsSnapshot" style="width: 400px; height: 120px;"></div></td>
-</tr>
-<tr>
+<td><div id="systemStatsSnapshotRealTime" style="width: 400px; height: 120px;"></div></td>
 <td><div id="responseRateRealTime" style="width: 400px; height: 120px;"></div></td>
 <td><div id="waitingTimeRealTime" style="width: 400px; height: 120px;"></div></td>
 <td><div id="talkingTimeRealTime" style="width: 400px; height: 120px;"></div></td>
-<td><div id="timeoutCountRealTime" style="width: 400px; height: 120px;"></div></td>
 </tr>
 </table>
 </div>
+
 </body>
 </html>
 
