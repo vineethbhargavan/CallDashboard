@@ -88,7 +88,7 @@ function populateResponseRate(stats, elementId) {
     ]);
 
     var options = {
-        width: 400, height: 120,
+        width: 600, height: 180,
         redFrom: 0, redTo: 30,
         yellowFrom: 31, yellowTo: 45,
         greenFrom: 46, greenTo: 100,
@@ -110,7 +110,7 @@ function populateAverageWaitingTime(stats, elementId) {
     ]);
 
     var options = {
-        width: 400, height: 120,
+        width: 600, height: 180,
         redFrom: 120, redTo: 160,
         yellowFrom: 60, yellowTo: 120,
         greenFrom: 0, greenTo: 60,
@@ -132,7 +132,7 @@ function populateAverageConnectedTime(stats, elementId) {
     ]);
 
     var options = {
-        width: 400, height: 120,
+        width: 600, height: 180,
         redFrom: 210, redTo: 400,
         yellowFrom: 0, yellowTo: 150,
         greenFrom: 150, greenTo: 210,
@@ -155,7 +155,7 @@ function populateAverageAbandonTime(stats) {
     ]);
 
     var options = {
-        width: 400, height: 120,
+        width: 600, height: 180,
         redFrom: 120, redTo: 160,
         yellowFrom: 60, yellowTo: 120,
         greenFrom: 0, greenTo: 60,
@@ -177,7 +177,7 @@ function populateTimeoutCount(stats, elementId) {
     ]);
 
     var options = {
-        width: 400, height: 120,
+        width: 600, height: 180,
         redFrom: 10, redTo: 50,
         yellowFrom: 5, yellowTo: 10,
         greenFrom: 0, greenTo: 5,
@@ -204,7 +204,7 @@ function populateAbandonRates(stats) {
     ]);
 
     var options = {
-        width: 400, height: 120,
+        width: 600, height: 180,
         redFrom: 60, redTo: 100,
         yellowFrom: 30, yellowTo: 60,
         greenFrom: 0, greenTo: 30,
@@ -224,8 +224,8 @@ function populateTicketClassification(ticketGroups) {
 
 
     var stats = [];
-  
-    var enquiry_type = {'0':'PSMS','1':'MarketingNo','2':'IncomingCall','3':'Callback/VM','4':'IncomingAnswered','6':'ManualTicket','7':'Refund Email','8':'Email query'};
+
+    var enquiry_type = {'0': 'PSMS', '1': 'MarketingNo', '2': 'IncomingCall', '3': 'Callback/VM', '4': 'IncomingAnswered', '6': 'ManualTicket', '7': 'Refund Email', '8': 'Email query'};
     for (i = 0; i < ticketGroups.length; i++) {
         var singleStat = [];
         singleStat.push(enquiry_type[ticketGroups[i].enquiry_type]);
@@ -236,8 +236,9 @@ function populateTicketClassification(ticketGroups) {
 
     var options = {
         title: 'Ticket Classifications',
-        pieSliceText:'value',
-        slices:[{v: 0, f: 'SMS'}]
+        width: 700, height: 400,
+        pieSliceText: 'value',
+        slices: [{v: 0, f: 'SMS'}]
     };
 
     var chart = new google.visualization.PieChart(document.getElementById('ticketClassification'));
@@ -282,6 +283,8 @@ function populateSystemStats(callstats, divId, title) {
 
     var options = {
         title: title,
+        height: 500,
+        width: $(document).width(),
         curveType: 'function',
         vAxis: {ticks: [{v: 0, f: '0'}, {v: 2, f: '2'}, {v: 5, f: '5'}, {v: 10, f: '10'}, {v: 15, f: '15'}, {v: 20, f: '20'}, {v: 30, f: '60%'}, {v: 40, f: '80%'}, {v: 50, f: '100%'}]},
         legend: {position: 'bottom'}
@@ -316,7 +319,7 @@ function populateGuages(data, elementId) {
 //    ]);
 //
 //    var options = {
-//        width: 400, height: 120,
+//        width: 600, height: 180,
 //        redFrom: 90, redTo: 100,
 //        yellowFrom: 75, yellowTo: 90,
 //        minorTicks: 5
