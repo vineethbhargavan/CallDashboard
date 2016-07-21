@@ -1,12 +1,16 @@
 
 
-//google.charts.setOnLoadCallback(populateSystemSnapShot);
-//google.charts.setOnLoadCallback(populateSystemSnapShotRealtime);
-//google.charts.setOnLoadCallback(populateGuages);
-////google.charts.load('current', {'packages': ['corechart']});
-//google.charts.setOnLoadCallback(populateSystemStats);
+google.charts.setOnLoadCallback(populateSystemSnapShot);
+google.charts.setOnLoadCallback(populateTicketClassification);
+google.charts.setOnLoadCallback(populateGuages);
+google.charts.setOnLoadCallback(populateSystemStats);
 
-
+app.controller('ticketClassificationController', function ($scope) {
+    socket.on('ticketClassification', function (data) {
+        console.log('ticketClassification' + JSON.stringify(data));
+        populateTicketClassification(data);
+    });
+});
 
 app.controller('guageController', function ($scope) {
     socket.on('movingCallStats', function (data) {
@@ -14,9 +18,9 @@ app.controller('guageController', function ($scope) {
         //google.charts.setOnLoadCallback(populateGuages);
         //$scope.guage = data;
         console.log('guageController' + JSON.stringify(data));
-        populateSystemSnapShot(data);
-        populateGuages(data, "");
-        
+        populateSystemSnapShot(data, "MovingAverage");
+        populateGuages(data, "MovingAverage");
+
         //$scope.$apply();
 
     });
@@ -29,9 +33,9 @@ app.controller('realTimeGuageController', function ($scope) {
         //google.charts.setOnLoadCallback(populateGuages);
         //$scope.guage = data;
         console.log('realTimeGuageController' + JSON.stringify(data));
-        populateSystemSnapShotRealtime(data);
+        populateSystemSnapShot(data, "RealTime");
         populateGuages(data, 'RealTime');
-        
+
         //$scope.$apply();
 
     });
@@ -54,11 +58,13 @@ app.controller('realTimelineChartController', function ($scope) {
         //console.log('lineChartController realtimeSystemStats' + JSON.stringify(data));
         populateSystemStats(data, 'realtimeCallstat', 'Realtime -(1 hr snapshot)');
 
-       // $scope.$apply();
+        // $scope.$apply();
 
     });
 });
-function populateSystemSnapShotRealtime(stats) {
+
+
+function populateSystemSnapShot(stats, elementId) {
     console.log('populateSystemSnapShot' + JSON.stringify(stats));
     var data = new google.visualization.DataTable();
     data.addColumn('string', 'Entities');
@@ -70,23 +76,7 @@ function populateSystemSnapShotRealtime(stats) {
         ['LoogedInOperators', stats.loggedInOperators]
     ]);
 
-    var table = new google.visualization.Table(document.getElementById('systemStatsSnapshotRealTime'));
-
-    table.draw(data, {showRowNumber: true, width: '100%', height: '100%'});
-}
-function populateSystemSnapShot(stats) {
-    console.log('populateSystemSnapShot' + JSON.stringify(stats));
-    var data = new google.visualization.DataTable();
-    data.addColumn('string', 'Entities');
-    data.addColumn('number', 'Values');
-    data.addRows([
-        ['TotalCalls', stats.totalIncomingCalls],
-        ['InQueue', stats.totalCallsInQueue],
-        ['Connected', stats.connectedCount],
-        ['LoogedInOperators', stats.loggedInOperators]
-    ]);
-
-    var table = new google.visualization.Table(document.getElementById('systemStatsSnapshot'));
+    var table = new google.visualization.Table(document.getElementById('systemStatsSnapshot' + elementId));
 
     table.draw(data, {showRowNumber: true, width: '100%', height: '100%'});
 }
@@ -227,6 +217,33 @@ function populateAbandonRates(stats) {
 
 
 }
+function populateTicketClassification(ticketGroups) {
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Types');
+    data.addColumn('number', 'Count');
+
+
+    var stats = [];
+  
+    var enquiry_type = {'0':'PSMS','1':'MarketingNo','2':'IncomingCall','3':'Callback/VM','4':'IncomingAnswered','6':'ManualTicket','7':'Refund Email','8':'Email query'};
+    for (i = 0; i < ticketGroups.length; i++) {
+        var singleStat = [];
+        singleStat.push(enquiry_type[ticketGroups[i].enquiry_type]);
+        singleStat.push(ticketGroups[i].nos);
+        stats.push(singleStat);
+    }
+    data.addRows(stats);
+
+    var options = {
+        title: 'Ticket Classifications',
+        pieSliceText:'value',
+        slices:[{v: 0, f: 'SMS'}]
+    };
+
+    var chart = new google.visualization.PieChart(document.getElementById('ticketClassification'));
+
+    chart.draw(data, options);
+}
 
 function populateSystemStats(callstats, divId, title) {
     var data = new google.visualization.DataTable();
@@ -255,6 +272,13 @@ function populateSystemStats(callstats, divId, title) {
         stats.push(singleStat);
     }
     data.addRows(stats);
+//    var data = google.visualization.arrayToDataTable([
+//        ['Year', 'Sales', 'Expenses'],
+//        ['2004', 1000, 400],
+//        ['2005', 1170, 460],
+//        ['2006', 660, 1120],
+//        ['2007', 1030, 540]
+//    ]);
 
     var options = {
         title: title,
@@ -269,6 +293,8 @@ function populateSystemStats(callstats, divId, title) {
 
 
 }
+
+
 function populateGuages(data, elementId) {
     console.log('populateGuages' + elementId + "Values:" + JSON.stringify(data));
     populateResponseRate(data, elementId);

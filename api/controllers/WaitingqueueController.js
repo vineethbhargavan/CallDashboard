@@ -74,11 +74,14 @@ module.exports = {
                     rrate.timestamp = rrate.dateTime;
                     publishRealtimeQueueStats(updated);
                     populateMovingAverageStats(rrate, lastInterval);
+                    pupulateTicketGraph();
                 }
             });
         });
 
 
+    }, launchTicketGraph: function (req, resp) {
+        pupulateTicketGraph();
     }
 };
 //moving average
@@ -129,6 +132,12 @@ var movingAvg = setInterval(function () {
 
 }, interval);
 
+function pupulateTicketGraph() {
+    ticket_count_by_enquiry_type.find().exec(function (err, types) {
+        sails.log.info('pupulateTicketGraph' + JSON.stringify(types));
+        sails.sockets.broadcast(roomId, 'ticketClassification', types);
+    });
+}
 //Need to improve the below function
 function populateMovingAverageStats(rrate, lastInterval) {
     try {

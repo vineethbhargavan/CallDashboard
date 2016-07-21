@@ -45,6 +45,7 @@ module.exports.routes = {
   '/test': 'OperatorStatusController.testFunction',
   '/queueStats': 'WaitingqueueController.launchQueuedashboard',
   'post /room/queueStats': 'WaitingqueueController.populateQueuedashboard',
+  '/ticketStats':'WaitingqueueController.launchTicketGraph',
   
 
   /***************************************************************************
