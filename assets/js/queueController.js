@@ -46,7 +46,7 @@ app.controller('lineChartController', function ($scope) {
         //google.charts.setOnLoadCallback(populateSystemStats);
         //$scope.guage = data;
         //console.log('lineChartController' + JSON.stringify(data));
-        populateSystemStats(data, 'movingAverageCallstat', 'Call stat every 15 min-24hrs history');
+        populateSystemStats(data, 'movingAverageCallstat', 'Call stat every 30 min-24hrs history');
         //$scope.$apply();
 
     });
@@ -70,10 +70,10 @@ function populateSystemSnapShot(stats, elementId) {
     data.addColumn('string', 'Entities');
     data.addColumn('number', 'Values');
     data.addRows([
-        ['TotalCalls', stats.totalIncomingCalls],
-        ['InQueue', stats.totalCallsInQueue],
+        ['Calls', stats.totalIncomingCalls],
+        ['Waiting', stats.totalCallsInQueue],
         ['Connected', stats.connectedCount],
-        ['LoogedInOperators', stats.loggedInOperators]
+        ['Agents', stats.loggedInOperators]
     ]);
 
     var table = new google.visualization.Table(document.getElementById('systemStatsSnapshot' + elementId));
@@ -225,7 +225,7 @@ function populateTicketClassification(ticketGroups) {
 
     var stats = [];
 
-    var enquiry_type = {'0': 'PSMS', '1': 'MarketingNo', '2': 'IncomingCall', '3': 'Callback/VM', '4': 'IncomingAnswered', '6': 'ManualTicket', '7': 'Refund Email', '8': 'Email query'};
+    var enquiry_type = {'0': '19 Unsub', '1': '04 Unsub', '2': 'IncomingCall', '3': 'Callback/VM', '4': 'IncomingAnswered', '6': 'ManualTicket', '7': 'Refund Email', '8': 'Email query'};
     for (i = 0; i < ticketGroups.length; i++) {
         var singleStat = [];
         singleStat.push(enquiry_type[ticketGroups[i].enquiry_type]);
@@ -283,10 +283,9 @@ function populateSystemStats(callstats, divId, title) {
 
     var options = {
         title: title,
-        height: 500,
+        height: 555,
         width: $(document).width(),
-        curveType: 'function',
-        vAxis: {ticks: [{v: 0, f: '0'}, {v: 2, f: '2'}, {v: 5, f: '5'}, {v: 10, f: '10'}, {v: 15, f: '15'}, {v: 20, f: '20'}, {v: 30, f: '60%'}, {v: 40, f: '80%'}, {v: 50, f: '100%'}]},
+        vAxis: {ticks: [{v: 0, f: '0'},{v: 1, f: '1'}, {v: 2, f: '2'}, {v: 3, f: '3'},{v: 4, f: '4'},{v: 5, f: '5'}, {v: 10, f: '10'}, {v: 15, f: '15'}, {v: 20, f: '20'}, {v: 30, f: '60%'}, {v: 40, f: '80%'}, {v: 50, f: '100%'}]},
         legend: {position: 'bottom'}
     };
     var chart = new google.visualization.LineChart(document.getElementById(divId));

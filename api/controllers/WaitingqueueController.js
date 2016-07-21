@@ -85,7 +85,7 @@ module.exports = {
     }
 };
 //moving average
-var interval = 900000;
+var interval = 1800000;
 var realtimeFetchInterval = 0;
 var roomId = "dashboard";
 var movingAvg = setInterval(function () {
@@ -360,6 +360,7 @@ function updateMovingAverageSnapshots(mv_avg) {
             sails.log.info('mv_responseRate Updated' + JSON.stringify(mvUpdated));
             sails.sockets.broadcast(roomId, 'movingCallStats', mvUpdated);
             publishMovingAverageStats(mvUpdated);
+            pupulateTicketGraph();
         }
     });
 }
@@ -378,6 +379,7 @@ function publishRealtimeQueueStats(qStats) {
     var previousInterval = currentTime - 600000;
     sails.log.info('publishRealtimeQueueStats' + JSON.stringify(qStats));
     sails.sockets.broadcast(roomId, 'realTimecallStats', qStats);
+    pupulateTicketGraph();
     r_responseRate.find({timestamp: {'>': previousInterval, '<': currentTime}}).exec(function (err, qresult) {
         sails.sockets.broadcast(roomId, 'realtimeSystemStats', qresult);
     });
