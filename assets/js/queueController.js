@@ -1,5 +1,3 @@
-
-
 google.charts.setOnLoadCallback(populateSystemSnapShot);
 google.charts.setOnLoadCallback(populateTicketClassification);
 google.charts.setOnLoadCallback(populateGuages);
@@ -65,6 +63,10 @@ app.controller('realTimelineChartController', function ($scope) {
 
 
 function populateSystemSnapShot(stats, elementId) {
+
+    if (stats == undefined) {
+        return;
+    }
     console.log('populateSystemSnapShot' + JSON.stringify(stats));
     var data = new google.visualization.DataTable();
     data.addColumn('string', 'Entities');
@@ -76,7 +78,13 @@ function populateSystemSnapShot(stats, elementId) {
         ['Agents', stats.loggedInOperators]
     ]);
 
-    var table = new google.visualization.Table(document.getElementById('systemStatsSnapshot' + elementId));
+    var tempId = 'systemStatsSnapshot' + elementId;
+
+    if ($('#' + tempId).length <= 0) {
+        return;
+    }
+
+    var table = new google.visualization.Table(document.getElementById(tempId));
 
     table.draw(data, {showRowNumber: true, width: '100%', height: '100%'});
 }
@@ -95,6 +103,10 @@ function populateResponseRate(stats, elementId) {
         minorTicks: 5
     };
 
+
+    if ($('#responseRate' + elementId).length <= 0) {
+        return;
+    }
     var chart = new google.visualization.Gauge(document.getElementById('responseRate' + elementId));
 
     chart.draw(data, options);
@@ -118,6 +130,9 @@ function populateAverageWaitingTime(stats, elementId) {
         max: 160
     };
 
+    if ($('#waitingTime' + elementId).length <= 0) {
+        return;
+    }
     var chart = new google.visualization.Gauge(document.getElementById('waitingTime' + elementId));
 
     chart.draw(data, options);
@@ -140,6 +155,9 @@ function populateAverageConnectedTime(stats, elementId) {
         max: 400
     };
 
+    if ($('#talkingTime' + elementId).length <= 0) {
+        return;
+    }
     var chart = new google.visualization.Gauge(document.getElementById('talkingTime' + elementId));
 
     chart.draw(data, options);
@@ -163,6 +181,10 @@ function populateAverageAbandonTime(stats) {
         max: 160
     };
 
+
+    if ($('#abandonTime').length <= 0) {
+        return;
+    }
     var chart = new google.visualization.Gauge(document.getElementById('abandonTime'));
 
     chart.draw(data, options);
@@ -184,6 +206,10 @@ function populateTimeoutCount(stats, elementId) {
         minorTicks: 5,
         max: 50
     };
+
+    if ($('#timeoutCount' + elementId).length <= 0) {
+        return;
+    }
 
     var chart = new google.visualization.Gauge(document.getElementById('timeoutCount' + elementId));
 
@@ -211,6 +237,9 @@ function populateAbandonRates(stats) {
         minorTicks: 5
     };
 
+    if ($('#abandonRates').length <= 0) {
+        return;
+    }
     var chart = new google.visualization.Gauge(document.getElementById('abandonRates'));
 
     chart.draw(data, options);
@@ -218,6 +247,9 @@ function populateAbandonRates(stats) {
 
 }
 function populateTicketClassification(ticketGroups) {
+    if(ticketGroups==undefined){
+        return;
+    }
     var data = new google.visualization.DataTable();
     data.addColumn('string', 'Types');
     data.addColumn('number', 'Count');
@@ -240,6 +272,10 @@ function populateTicketClassification(ticketGroups) {
         pieSliceText: 'value',
         slices: [{v: 0, f: 'SMS'}]
     };
+
+    if ($('#ticketClassification').length <= 0) {
+        return;
+    }
 
     var chart = new google.visualization.PieChart(document.getElementById('ticketClassification'));
 
@@ -285,9 +321,14 @@ function populateSystemStats(callstats, divId, title) {
         title: title,
         height: 555,
         width: $(document).width(),
-        vAxis: {ticks: [{v: 0, f: '0'},{v: 1, f: '1'}, {v: 2, f: '2'}, {v: 3, f: '3'},{v: 4, f: '4'},{v: 5, f: '5'}, {v: 10, f: '10'}, {v: 15, f: '15'}, {v: 20, f: '20'}, {v: 30, f: '60%'}, {v: 40, f: '80%'}, {v: 50, f: '100%'}]},
+        vAxis: {ticks: [{v: 0, f: '0'}, {v: 1, f: '1'}, {v: 2, f: '2'}, {v: 3, f: '3'}, {v: 4, f: '4'}, {v: 5, f: '5'}, {v: 10, f: '10'}, {v: 15, f: '15'}, {v: 20, f: '20'}, {v: 30, f: '60%'}, {v: 40, f: '80%'}, {v: 50, f: '100%'}]},
         legend: {position: 'bottom'}
     };
+
+
+    if ($('#' + divId).length <= 0) {
+        return;
+    }
     var chart = new google.visualization.LineChart(document.getElementById(divId));
 
 
@@ -299,37 +340,27 @@ function populateSystemStats(callstats, divId, title) {
 
 function populateGuages(data, elementId) {
     console.log('populateGuages' + elementId + "Values:" + JSON.stringify(data));
-    populateResponseRate(data, elementId);
-    populateAverageWaitingTime(data, elementId);
-    populateAverageConnectedTime(data, elementId);
-    populateTimeoutCount(data, elementId);
+
+
+    try {
+
+
+        populateResponseRate(data, elementId);
+        populateAverageWaitingTime(data, elementId);
+        populateAverageConnectedTime(data, elementId);
+        populateTimeoutCount(data, elementId);
+
+
+
+    }
+    catch (err) {
+        console.log(err.message);
+    }
+
     //populateAverageAbandonTime(data);
     //populateAbandonRates(data);
 
 }
-//function populateGuages(data) {
-//
-//    var data = google.visualization.arrayToDataTable([
-//        ['Label', 'Value'],
-//        ['ResponseRate', (data.connectedCount/data.totalIncomingCalls)*100],
-//        ['WaitingTime', data.waitingTime],
-//        ['AbandonTime', data.abandonTime],
-//        ['CallHandingTime', data.connectedTime],
-//    ]);
-//
-//    var options = {
-//        width: 280, height: 200,
-//        redFrom: 90, redTo: 100,
-//        yellowFrom: 75, yellowTo: 90,
-//        minorTicks: 5
-//    };
-//
-//    var chart = new google.visualization.Gauge(document.getElementById('chart_div'));
-//
-//    chart.draw(data, options);
-//
-//
-//}
 
 
 
