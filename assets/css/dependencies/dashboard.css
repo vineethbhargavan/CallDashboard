@@ -1,5 +1,6 @@
 #realTimeGuageController table tr td {
     text-align: center;
+    padding: 0px;
 }
 
 #realTimeGuageController table tr td div:first-child{
@@ -9,7 +10,7 @@
 /* for gauge indicators text */
 #realTimeGuageController svg g text {
     font-size: 12px;
-    font-weight: bold;
+    font-style: italic;
 }
 
 #systemStatsSnapshotRealTime, #systemStatsSnapshotMovingAverage {

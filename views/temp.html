@@ -10,7 +10,7 @@
                 <div class="col-lg-5">
                     <div id="ticketClassificationController" ng-controller="ticketClassificationController">
 
-                            <div id="ticketClassification" class="panel-body"></div>
+                        <div id="ticketClassification" class="panel-body"></div>
 
                     </div>
                 </div>
@@ -23,9 +23,11 @@
                         <div id="realTimeGuageController" ng-controller="realTimeGuageController">
 
                             <table class="table table-bordered table-striped">
+                                <tr>
+                                    <td colspan="3"><strong>Real Time</strong></td>
+                                </tr>
                                 <tr> 
                                     <td>
-                                        <h3>Real Time</h3>
                                         <div id="systemStatsSnapshotRealTime">
                                         </div>
                                     </td>
@@ -36,20 +38,19 @@
                                     <td>
 
                                         <div id="waitingTimeRealTime"></div>
+                                        <div id="talkingTimeRealTime" style="display:none;"></div>
                                     </td>
-                                    <td>
-                                        <div id="talkingTimeRealTime"></div>
-                                    </td>
+
+
+
 
                                 </tr>
 
 
+                                <tr>
+                                    <td colspan="3"><strong>Average</strong></td>
+                                </tr>
                                 <tr> 
-                                    <td>
-                                        <h3>Average</h3>
-                                        <div id="systemStatsSnapshotMovingAverage">
-                                        </div>
-                                    </td>
 
                                     <td>
                                         <div id="responseRateMovingAverage"></div>
@@ -65,7 +66,8 @@
                                 </tr>
 
                             </table>
-
+                                        <div id="systemStatsSnapshotMovingAverage" style="display:none;">
+                                        </div>
 
 
 
