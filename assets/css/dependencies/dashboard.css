@@ -16,3 +16,13 @@
 #systemStatsSnapshotRealTime, #systemStatsSnapshotMovingAverage {
     width: 100%;
 }
+
+
+#systemStatsSnapshotRealTime table th, td.google-visualization-table-seq{
+    display: none;
+}
+
+#systemStatsSnapshotRealTime table td {
+    font-weight: bold;
+    font-style: italic;
+}
