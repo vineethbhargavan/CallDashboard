@@ -88,7 +88,7 @@ function populateResponseRate(stats, elementId) {
     ]);
 
     var options = {
-        width: 600, height: 180,
+        width: 280, height: 200,
         redFrom: 0, redTo: 30,
         yellowFrom: 31, yellowTo: 45,
         greenFrom: 46, greenTo: 100,
@@ -110,7 +110,7 @@ function populateAverageWaitingTime(stats, elementId) {
     ]);
 
     var options = {
-        width: 600, height: 180,
+        width: 280, height: 200,
         redFrom: 120, redTo: 160,
         yellowFrom: 60, yellowTo: 120,
         greenFrom: 0, greenTo: 60,
@@ -132,7 +132,7 @@ function populateAverageConnectedTime(stats, elementId) {
     ]);
 
     var options = {
-        width: 600, height: 180,
+        width: 280, height: 200,
         redFrom: 210, redTo: 400,
         yellowFrom: 0, yellowTo: 150,
         greenFrom: 150, greenTo: 210,
@@ -155,7 +155,7 @@ function populateAverageAbandonTime(stats) {
     ]);
 
     var options = {
-        width: 600, height: 180,
+        width: 280, height: 200,
         redFrom: 120, redTo: 160,
         yellowFrom: 60, yellowTo: 120,
         greenFrom: 0, greenTo: 60,
@@ -177,7 +177,7 @@ function populateTimeoutCount(stats, elementId) {
     ]);
 
     var options = {
-        width: 600, height: 180,
+        width: 280, height: 200,
         redFrom: 10, redTo: 50,
         yellowFrom: 5, yellowTo: 10,
         greenFrom: 0, greenTo: 5,
@@ -204,7 +204,7 @@ function populateAbandonRates(stats) {
     ]);
 
     var options = {
-        width: 600, height: 180,
+        width: 280, height: 200,
         redFrom: 60, redTo: 100,
         yellowFrom: 30, yellowTo: 60,
         greenFrom: 0, greenTo: 30,
@@ -318,7 +318,7 @@ function populateGuages(data, elementId) {
 //    ]);
 //
 //    var options = {
-//        width: 600, height: 180,
+//        width: 280, height: 200,
 //        redFrom: 90, redTo: 100,
 //        yellowFrom: 75, yellowTo: 90,
 //        minorTicks: 5

@@ -1,0 +1,17 @@
+#realTimeGuageController table tr td {
+    text-align: center;
+}
+
+#realTimeGuageController table tr td div:first-child{
+    display: inline-block;
+}
+
+/* for gauge indicators text */
+#realTimeGuageController svg g text {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+#systemStatsSnapshotRealTime, #systemStatsSnapshotMovingAverage {
+    width: 100%;
+}

@@ -9,9 +9,9 @@
                 <!-- pie chart-->
                 <div class="col-lg-5">
                     <div id="ticketClassificationController" ng-controller="ticketClassificationController">
-                        <div class="panel panel-default">
+
                             <div id="ticketClassification" class="panel-body"></div>
-                        </div>
+
                     </div>
                 </div>
                 <!-- end pie chart-->
@@ -22,15 +22,16 @@
                     <div class="row">
                         <div id="realTimeGuageController" ng-controller="realTimeGuageController">
 
-                            <table class="table table-bordered">
+                            <table class="table table-bordered table-striped">
                                 <tr> 
                                     <td>
+                                        <h3>Real Time</h3>
                                         <div id="systemStatsSnapshotRealTime">
                                         </div>
                                     </td>
 
                                     <td>
-                                        <div id="responseRateRealTime" class="text-center"></div>
+                                        <div id="responseRateRealTime"></div>
                                     </td>
                                     <td>
 
@@ -45,6 +46,7 @@
 
                                 <tr> 
                                     <td>
+                                        <h3>Average</h3>
                                         <div id="systemStatsSnapshotMovingAverage">
                                         </div>
                                     </td>
@@ -87,7 +89,7 @@
             <div class="row">
 
                 <div class="panel panel-default">
-                    <div class="panel-body">
+                    <div class="panel-body" style="padding:5px;">
                         <div id="movingAverageCallstat" ng-controller="lineChartController">
                         </div>
                     </div>
