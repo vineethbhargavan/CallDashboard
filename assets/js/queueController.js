@@ -30,7 +30,7 @@ app.controller('realTimeGuageController', function ($scope) {
         //google.charts.setOnLoadCallback(populateSystemSnapShot);
         //google.charts.setOnLoadCallback(populateGuages);
         //$scope.guage = data;
-        console.log('realTimeGuageController' + JSON.stringify(data));
+        //console.log('realTimeGuageController' + JSON.stringify(data));
         populateSystemSnapShot(data, "RealTime");
         populateGuages(data, 'RealTime');
 
@@ -67,7 +67,7 @@ function populateSystemSnapShot(stats, elementId) {
     if (stats == undefined) {
         return;
     }
-    console.log('populateSystemSnapShot' + JSON.stringify(stats));
+    //console.log('populateSystemSnapShot' + JSON.stringify(stats));
     var data = new google.visualization.DataTable();
     data.addColumn('string', 'Entities');
     data.addColumn('number', 'Values');
@@ -247,30 +247,42 @@ function populateAbandonRates(stats) {
 
 }
 function populateTicketClassification(ticketGroups) {
-    if(ticketGroups==undefined){
+    if (ticketGroups == undefined) {
         return;
     }
-    var data = new google.visualization.DataTable();
-    data.addColumn('string', 'Types');
-    data.addColumn('number', 'Count');
+    var unsubs = 0;
+    var callback = 0;
+    var manual = 0;
+    var refundEmail = 0;
+    var EmailQuery = 0;
 
-
-    var stats = [];
-
-    var enquiry_type = {'0': '19 Unsub', '1': '04 Unsub', '2': 'IncomingCall', '3': 'Callback/VM', '4': 'IncomingAnswered', '6': 'ManualTicket', '7': 'Refund Email', '8': 'Email query'};
+    //var enquiry_type = {'0': '19 Unsub', '1': '04 Unsub', '2': 'IncomingCall', '3': 'Callback/VM', '4': 'IncomingAnswered', '6': 'ManualTicket', '7': 'Refund Email', '8': 'Email query'};
     for (i = 0; i < ticketGroups.length; i++) {
-        var singleStat = [];
-        singleStat.push(enquiry_type[ticketGroups[i].enquiry_type]);
-        singleStat.push(ticketGroups[i].nos);
-        stats.push(singleStat);
+        if (ticketGroups[i].enquiry_type == '0' | ticketGroups[i].enquiry_type == '1')
+            unsubs = unsubs + ticketGroups[i].nos;
+        if (ticketGroups[i].enquiry_type == '3')
+            callback = callback + ticketGroups[i].nos;
+        if (ticketGroups[i].enquiry_type == '6')
+            manual = manual + ticketGroups[i].nos;
+        if (ticketGroups[i].enquiry_type == '7')
+            refundEmail = refundEmail + ticketGroups[i].nos;
+        if (ticketGroups[i].enquiry_type == '8')
+            EmailQuery = EmailQuery + ticketGroups[i].nos;
     }
-    data.addRows(stats);
+
+    var data = google.visualization.arrayToDataTable([
+        ['Types', 'Count'],
+        ['Unsubs', unsubs],
+        ['Callback', callback],
+        ['Manual', manual],
+        ['RefundEmail', refundEmail],
+        ['EmailQuery', EmailQuery]
+    ]);
 
     var options = {
         title: 'Ticket Classifications',
         width: 700, height: 400,
-        pieSliceText: 'value',
-        slices: [{v: 0, f: 'SMS'}]
+        pieSliceText: 'value'
     };
 
     if ($('#ticketClassification').length <= 0) {
@@ -283,6 +295,9 @@ function populateTicketClassification(ticketGroups) {
 }
 
 function populateSystemStats(callstats, divId, title) {
+    if (callstats === undefined) {
+        return;
+    }
     var data = new google.visualization.DataTable();
     data.addColumn('datetime', 'time');
     data.addColumn('number', 'TotalCalls');
@@ -339,7 +354,7 @@ function populateSystemStats(callstats, divId, title) {
 
 
 function populateGuages(data, elementId) {
-    console.log('populateGuages' + elementId + "Values:" + JSON.stringify(data));
+    //console.log('populateGuages' + elementId + "Values:" + JSON.stringify(data));
 
 
     try {
@@ -352,8 +367,7 @@ function populateGuages(data, elementId) {
 
 
 
-    }
-    catch (err) {
+    } catch (err) {
         console.log(err.message);
     }
 

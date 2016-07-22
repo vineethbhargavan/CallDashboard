@@ -15,7 +15,7 @@ google.charts.load('current', {'packages': ['table', 'gauge', 'corechart']});
 var roomId = roomId;
 
 
-$('doucment').ready(function () {
+$('document').ready(function () {
     socket.post('/room/queueStats', {id: 'operator', name: 'dashboard'});
 
 

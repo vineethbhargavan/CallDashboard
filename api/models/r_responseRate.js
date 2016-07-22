@@ -36,6 +36,10 @@ module.exports = {
             type: 'integer',
             size: 10,
             defaultsTo: 0
+        },totalExternalRedirections: {
+            type: 'integer',
+            size: 10,
+            defaultsTo: 0
         }, abandonCount_10: {
             type: 'integer',
             size: 10,

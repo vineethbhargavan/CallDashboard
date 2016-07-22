@@ -230,6 +230,13 @@ function populateMovingAverageStats(rrate, lastInterval) {
                     updateMovingAverageSnapshots(mv_rrate);
                 }
             });
+            r_responseRate.find({timestamp: {'>': lastInterval, '<': mv_rrate.dateTime}, totalExternalRedirections: {'!': 0}}).average('totalExternalRedirections').exec(function (err, rrate) {
+                sails.log.info("r_responseRate sum@@@(totalExternalRedirections) " + JSON.stringify(rrate));
+                if (rrate[0] !== undefined & !isNaN(rrate[0].totalExternalRedirections)) {
+                    mv_rrate.totalExternalRedirections = rrate[0].totalExternalRedirections;
+                    updateMovingAverageSnapshots(mv_rrate);
+                }
+            });
 
 
         });
@@ -267,6 +274,9 @@ function populateQueueStats(queue, callback) {
                             if (queue.queueState == "timeout") {
                                 callstats.timeoutCount++;
                                 callstats.timeoutTime = (callstats.timeoutTime + queue.timeoutDuration);
+                            }
+                            if (queue.queueState == "entrypoint_external") {
+                                callstats.totalExternalRedirections++;
                             }
                             if (queue.queueState != "entrypoint" && queue.queueState != "terminated" && queue.queueState != "connected") {
                                 callstats.totalCallsInQueue++;
