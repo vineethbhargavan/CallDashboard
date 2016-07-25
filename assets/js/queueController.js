@@ -95,7 +95,7 @@ function populateSystemSnapShotBar(stats, elementId) {
     var data = google.visualization.arrayToDataTable([
         ['entites', 'Total', 'Blocked',{role: 'annotation'}],
         ['Calls', stats.totalIncomingCalls - stats.totalExternalRedirections, 0,stats.totalIncomingCalls - stats.totalExternalRedirections+""],
-      ['Waiting', stats.totalCallsInQueue, 0,stats.totalCallsInQueue+""],
+      ['Waiting',0,stats.totalCallsInQueue,stats.totalCallsInQueue+""],
         ['Connected', stats.connectedCount,0,stats.connectedCount+""],
         ['Agents', stats.loggedInOperators-stats.blocked,stats.blocked,stats.loggedInOperators-stats.blocked+"/"+stats.blocked]
     ]);
