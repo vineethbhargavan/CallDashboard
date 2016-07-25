@@ -5,7 +5,7 @@ google.charts.setOnLoadCallback(populateSystemStats);
 
 app.controller('ticketClassificationController', function ($scope) {
     socket.on('ticketClassification', function (data) {
-        console.log('ticketClassification' + JSON.stringify(data));
+        //console.log('ticketClassification' + JSON.stringify(data));
         populateTicketClassification(data);
     });
 });
@@ -91,7 +91,7 @@ function populateSystemSnapShot(stats, elementId) {
 }
 
 function populateSystemSnapShotBar(stats, elementId) {
-    console.log('populateSystemSnapShotBar' + JSON.stringify(stats));
+    //console.log('populateSystemSnapShotBar' + JSON.stringify(stats));
     var data = google.visualization.arrayToDataTable([
         ['entites', 'Total', 'Blocked',{role: 'annotation'}],
         ['Calls', stats.totalIncomingCalls - stats.totalExternalRedirections, 0,stats.totalIncomingCalls - stats.totalExternalRedirections+""],
