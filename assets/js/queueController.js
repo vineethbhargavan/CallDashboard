@@ -16,8 +16,8 @@ app.controller('guageController', function ($scope) {
         //google.charts.setOnLoadCallback(populateGuages);
         //$scope.guage = data;
         console.log('guageController' + JSON.stringify(data));
-        populateSystemSnapShot(data, "MovingAverage");
-        populateGuages(data, "MovingAverage");
+        //populateSystemSnapShotBar(data, "MovingAverage");
+        populateGuages(data, "MovingAverage", 1.5);
 
         //$scope.$apply();
 
@@ -31,8 +31,8 @@ app.controller('realTimeGuageController', function ($scope) {
         //google.charts.setOnLoadCallback(populateGuages);
         //$scope.guage = data;
         //console.log('realTimeGuageController' + JSON.stringify(data));
-        populateSystemSnapShot(data, "RealTime");
-        populateGuages(data, 'RealTime');
+        populateSystemSnapShotBar(data, "RealTime");
+        populateGuages(data, 'RealTime', 1);
 
         //$scope.$apply();
 
@@ -73,6 +73,7 @@ function populateSystemSnapShot(stats, elementId) {
     data.addColumn('number', 'Values');
     data.addRows([
         ['Calls', stats.totalIncomingCalls],
+        ['External Redirections', stats.totalExternalRedirections],
         ['Waiting', stats.totalCallsInQueue],
         ['Connected', stats.connectedCount],
         ['Agents', stats.loggedInOperators]
@@ -88,7 +89,34 @@ function populateSystemSnapShot(stats, elementId) {
 
     table.draw(data, {showRowNumber: true, width: '100%', height: '100%'});
 }
-function populateResponseRate(stats, elementId) {
+
+function populateSystemSnapShotBar(stats, elementId) {
+    console.log('populateSystemSnapShotBar' + JSON.stringify(stats));
+    var data = google.visualization.arrayToDataTable([
+        ['entites', 'Total', 'Blocked',{role: 'annotation'}],
+        ['Calls', stats.totalIncomingCalls - stats.totalExternalRedirections, 0,stats.totalIncomingCalls - stats.totalExternalRedirections+""],
+      ['Waiting', stats.totalCallsInQueue, 0,stats.totalCallsInQueue+""],
+        ['Connected', stats.connectedCount,0,stats.connectedCount+""],
+        ['Agents', stats.loggedInOperators-stats.blocked,stats.blocked,stats.loggedInOperators-stats.blocked+"/"+stats.blocked]
+    ]);
+    //['Agents', stats.loggedInOperators-stats.blocked,0,stats.blocked,0,0,stats.loggedInOperators-stats.blocked+"/"+stats.blocked]
+    var options = {
+        width: 400,
+        height: 200,
+        legend: {position: 'top', maxLines: 3},
+        bar: {groupWidth: '75%'},
+        isStacked: true
+    };
+    var tempId = 'systemStatsSnapshot' + elementId;
+
+    if ($('#' + tempId).length <= 0) {
+        return;
+    }
+    var chart = new google.visualization.BarChart(document.getElementById(tempId));
+    chart.draw(data, options);
+}
+
+function populateResponseRate(stats, elementId, size) {
 
     var data = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
@@ -96,7 +124,7 @@ function populateResponseRate(stats, elementId) {
     ]);
 
     var options = {
-        width: 280, height: 200,
+        width: 280 / size, height: 200 / size,
         redFrom: 0, redTo: 30,
         yellowFrom: 31, yellowTo: 45,
         greenFrom: 46, greenTo: 100,
@@ -114,7 +142,7 @@ function populateResponseRate(stats, elementId) {
 
 }
 
-function populateAverageWaitingTime(stats, elementId) {
+function populateAverageWaitingTime(stats, elementId, size) {
 
     var data = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
@@ -122,7 +150,7 @@ function populateAverageWaitingTime(stats, elementId) {
     ]);
 
     var options = {
-        width: 280, height: 200,
+        width: 280 / size, height: 200 / size,
         redFrom: 120, redTo: 160,
         yellowFrom: 60, yellowTo: 120,
         greenFrom: 0, greenTo: 60,
@@ -139,7 +167,7 @@ function populateAverageWaitingTime(stats, elementId) {
 
 
 }
-function populateAverageConnectedTime(stats, elementId) {
+function populateAverageConnectedTime(stats, elementId, size) {
 
     var data = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
@@ -147,7 +175,7 @@ function populateAverageConnectedTime(stats, elementId) {
     ]);
 
     var options = {
-        width: 280, height: 200,
+        width: 280 / size, height: 200 / size,
         redFrom: 210, redTo: 400,
         yellowFrom: 0, yellowTo: 150,
         greenFrom: 150, greenTo: 210,
@@ -191,7 +219,7 @@ function populateAverageAbandonTime(stats) {
 
 
 }
-function populateTimeoutCount(stats, elementId) {
+function populateTimeoutCount(stats, elementId, size) {
 
     var data = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
@@ -199,7 +227,7 @@ function populateTimeoutCount(stats, elementId) {
     ]);
 
     var options = {
-        width: 280, height: 200,
+        width: 280 / size, height: 200 / size,
         redFrom: 10, redTo: 50,
         yellowFrom: 5, yellowTo: 10,
         greenFrom: 0, greenTo: 5,
@@ -273,7 +301,7 @@ function populateTicketClassification(ticketGroups) {
     var data = google.visualization.arrayToDataTable([
         ['Types', 'Count'],
         ['Unsubs', unsubs],
-        ['Callback', callback],
+        ['Callbacks', callback],
         ['Manual', manual],
         ['RefundEmail', refundEmail],
         ['EmailQuery', EmailQuery]
@@ -353,17 +381,17 @@ function populateSystemStats(callstats, divId, title) {
 }
 
 
-function populateGuages(data, elementId) {
+function populateGuages(data, elementId, size) {
     //console.log('populateGuages' + elementId + "Values:" + JSON.stringify(data));
 
 
     try {
 
 
-        populateResponseRate(data, elementId);
-        populateAverageWaitingTime(data, elementId);
-        populateAverageConnectedTime(data, elementId);
-        populateTimeoutCount(data, elementId);
+        populateResponseRate(data, elementId, size);
+        populateAverageWaitingTime(data, elementId, size);
+        populateAverageConnectedTime(data, elementId, size);
+        populateTimeoutCount(data, elementId, size);
 
 
 

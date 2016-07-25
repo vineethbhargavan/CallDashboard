@@ -86,6 +86,22 @@ module.exports = {
             type: 'integer',
             size: 10,
             defaultsTo: 0
+        },incoming:{
+            type: 'integer',
+            size: 10,
+            defaultsTo: 0
+        },outgoing:{
+            type: 'integer',
+            size: 10,
+            defaultsTo: 0
+        },idle:{
+            type: 'integer',
+            size: 10,
+            defaultsTo: 0
+        },blocked:{
+            type: 'integer',
+            size: 10,
+            defaultsTo: 0
         }
 
     }

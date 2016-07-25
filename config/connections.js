@@ -45,7 +45,7 @@ module.exports.connections = {
     host: '192.168.0.120',
     user: 'root',
     password: 'abc123',
-    database: '1300_staging'
+    database: '1300'
   },
 
   /***************************************************************************
@@ -79,7 +79,7 @@ module.exports.connections = {
     host: '192.168.0.56',
     user: 'root',
     password: 'abc123',
-    database: '1300_staging'
+    database: '1300'
   },redis: {
       adapter: 'sails-redis',
     port: 6379,

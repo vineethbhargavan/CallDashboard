@@ -19,36 +19,40 @@ module.exports = {
         //Update Quue Object
         // Generate Queue Stats.
         var queueToUpdate = event;
-        r_queue.find({uniqueKey: queueToUpdate.custkey}).exec(function (err, qfound) {
-            if (qfound[0] != undefined) {
-                populateQueueObject(qfound[0], queueToUpdate, function (queue) {
-                    populateQueueStats(queue, function (callstats) {
-                        r_responseRate.insertOrUpdate("dateTime", callstats, function (err, updated) {
-                            if (err) { //returns if an error has occured, ie id doesn't exist.
-                                sails.log.info('r_responseRate Update Error' + err);
-                            } else {
-                                sails.log.info('r_responseRate Updated getCallStats' + JSON.stringify(updated));
-                                publishRealtimeQueueStats(updated);
-                            }
+        if (queueToUpdate.custkey != undefined && queueToUpdate.custkey != '') {
+            r_queue.find({uniqueKey: queueToUpdate.custkey}).exec(function (err, qfound) {
+                if (qfound[0] != undefined) {
+                    populateQueueObject(qfound[0], queueToUpdate, function (queue) {
+                        populateQueueStats(queue, function (callstats) {
+                            r_responseRate.insertOrUpdate("dateTime", callstats, function (err, updated) {
+                                if (err) { //returns if an error has occured, ie id doesn't exist.
+                                    sails.log.info('r_responseRate Update Error' + err);
+                                } else {
+                                    sails.log.info('r_responseRate Updated getCallStats' + JSON.stringify(updated));
+                                    publishRealtimeQueueStats(updated);
+                                }
+                            });
+                        });
+                        //publishQueueToView(roomId, callstat.interval);
+                    });
+                } else {
+                    initialiseQueueObject(queueToUpdate, function (queue) {
+                        populateQueueStats(queue, function (callstats) {
+                            r_responseRate.insertOrUpdate("dateTime", callstats, function (err, updated) {
+                                if (err) { //returns if an error has occured, ie id doesn't exist.
+                                    sails.log.info('r_responseRate Update Error' + err);
+                                } else {
+                                    sails.log.info('r_responseRate Updated getCallStats' + JSON.stringify(updated));
+                                    publishRealtimeQueueStats(updated);
+                                }
+                            });
                         });
                     });
-                    //publishQueueToView(roomId, callstat.interval);
-                });
-            } else {
-                initialiseQueueObject(queueToUpdate, function (queue) {
-                    populateQueueStats(queue, function (callstats) {
-                        r_responseRate.insertOrUpdate("dateTime", callstats, function (err, updated) {
-                            if (err) { //returns if an error has occured, ie id doesn't exist.
-                                sails.log.info('r_responseRate Update Error' + err);
-                            } else {
-                                sails.log.info('r_responseRate Updated getCallStats' + JSON.stringify(updated));
-                                publishRealtimeQueueStats(updated);
-                            }
-                        });
-                    });
-                });
-            }
-        });
+                }
+            });
+        } else {
+            sails.log.info('updateQueueObject INVALID queue Object' + err);
+        }
 
     }, launchQueuedashboard: function (req, resp) {
         return resp.view('queueStats', {
@@ -74,7 +78,7 @@ module.exports = {
                     rrate.timestamp = rrate.dateTime;
                     publishRealtimeQueueStats(updated);
                     populateMovingAverageStats(rrate, lastInterval);
-                    pupulateTicketGraph();
+                    //pupulateTicketGraph();
                 }
             });
         });
@@ -256,6 +260,38 @@ function populateMovingAverageStats(rrate, lastInterval) {
 //    });
 //}
 
+function populateOperatorStats(callback) {
+    var operatorStats = {};
+    Opprf.count({where: {flag: 1, id: {'!': ['1025', '1050']}}}).exec(function (err, total) {
+        operatorStats.totalOperators = total;
+        Opprf.count({where: {flag: 1, isblocked: 1, id: {'!': ['1025', '1050']}}}).exec(function (err, blocked) {
+            operatorStats.blocked = blocked;
+            Opprf.count({where: {flag: 1, mode: 'IN', id: {'!': ['1025', '1050']}}}).exec(function (err, incoming) {
+                operatorStats.incoming = incoming;
+                Opprf.count({where: {flag: 1, mode: 'OUT', id: {'!': ['1025', '1050']}}}).exec(function (err, outgoing) {
+                    operatorStats.outgoing = outgoing;
+                    sails.log.info("populateOperatorStats return" + JSON.stringify(operatorStats));
+                    callback(operatorStats);
+                });
+
+            });
+        });
+    });
+//    loggedIn_operators.find().exec(function (err, data) {
+//        sails.log.info("populateOperatorStats" + JSON.stringify(data));
+//        for (i = 0; i < data.length; i++) {
+//            var opprf_data = data[i];
+//            if (opprf_data.mode == "IN") {
+//                operatorStats.incoming++;
+//            } else if (opprf_data.mode == "OUT") {
+//                operatorStats.outgoing++;
+//            } else {
+//                operatorStats.idle++;
+//            }
+//        }
+//    });
+
+}
 function populateQueueStats(queue, callback) {
     try {
         if (queue != undefined) {
@@ -264,8 +300,13 @@ function populateQueueStats(queue, callback) {
             rrate.timestamp = rrate.dateTime;
             r_responseRate.insertOrUpdate("dateTime", rrate, function (err, callstats) {
                 sails.log.info("Initialised RR object" + JSON.stringify(callstats));
-                Opprf.count({where: {flag: 1, id: {'!': ['1025', '1050']}}}).exec(function (err, operators) {
-                    callstats.loggedInOperators = operators;
+                populateOperatorStats(function (operatorStats) {
+                    //Opprf.count({where: {flag: 1, id: {'!': ['1025', '1050']}}}).exec(function (err, operators) {
+                    callstats.loggedInOperators = operatorStats.totalOperators;
+                    callstats.incoming = operatorStats.incoming;
+                    callstats.outgoing = operatorStats.outgoing;
+                    callstats.idle = operatorStats.idle;
+                    callstats.blocked = operatorStats.blocked;
                     r_queue.find({queueState: {'!': 'dormant'}}).exec(function (err, qresult) {
                         callstats.totalIncomingCalls = qresult.length;
                         for (i = 0; i < qresult.length; i++) {
@@ -278,7 +319,7 @@ function populateQueueStats(queue, callback) {
                             if (queue.queueState == "entrypoint_external") {
                                 callstats.totalExternalRedirections++;
                             }
-                            if (queue.queueState != "entrypoint" && queue.queueState != "terminated" && queue.queueState != "connected") {
+                            if (queue.queueState != "entrypoint" && queue.queueState != "terminated" && queue.queueState != "connected" && queue.queueState != "entrypoint_external") {
                                 callstats.totalCallsInQueue++;
                             }
                             if ((queue.previousState == "entrypoint" || queue.previousState == "finding_op" || queue.previousState == "calling_op") && queue.queueState == "terminated") {
@@ -293,10 +334,6 @@ function populateQueueStats(queue, callback) {
                                     callstats.abandonCount_10++;
                                 }
                                 callstats.abandonTime = (callstats.abandonTime + queue.abandonDuration);
-                                //callstats.abandonRate = (callstats.abandonCount / callstats.totalIncomingCalls) * 100;
-                                //queue.previousState = queue.queueState;
-//                                queue.queueState = "dormant";
-//                                updateQueue(queue);
 
                             }
                             if (queue.queueState == "connected") {
@@ -308,14 +345,16 @@ function populateQueueStats(queue, callback) {
                             }
                             if (queue.previousState == "connected" && queue.queueState == "terminated") {
                                 callstats.connectedTime = (callstats.connectedTime + queue.connectedDuration);
-                                //queue.previousState = queue.queueState;
-//                                queue.queueState = "dormant";
-//                                updateQueue(queue);
                             }
                             if (queue.queueState == "terminated") {
                                 sails.log.info("populateQueueStats: End of Queue life" + JSON.stringify(queue));
                                 queue.queueState = "dormant";
-                                updateQueue(queue);
+                                callstats.totalIncomingCalls = callstats.totalIncomingCalls - 1;
+                                updateQueue(queue, function (updatedQueue) {
+                                    sails.log.info("populateQueueStats: End of Queue life" + updatedQueue.queueState);
+                                    //delete entity from database
+
+                                });
                             }
                         }
                         if ((callstats.connectedCount + callstats.timeoutCount) != 0)
@@ -352,14 +391,19 @@ function populateQueueStats(queue, callback) {
     }
 }
 
-function updateQueue(queue) {
-    r_queue.insertOrUpdate("uniqueKey", queue, function (err, qUpdated) {
-        if (err) { //returns if an error has occured, ie id doesn't exist.
-            sails.log.info('r_queue Update Error' + err);
-        } else {
-            sails.log.info('r_queue Updated' + JSON.stringify(qUpdated));
-        }
-    });
+function updateQueue(queue, callback) {
+    if (queue.uniqueKey != undefined) {
+        r_queue.insertOrUpdate("uniqueKey", queue, function (err, qUpdated) {
+            if (err) { //returns if an error has occured, ie id doesn't exist.
+                sails.log.info('r_queue Update Error' + err);
+            } else {
+                sails.log.info('r_queue Updated' + JSON.stringify(qUpdated));
+                callback(qUpdated);
+            }
+        });
+    } else {
+        callback(err);
+    }
 }
 
 function updateMovingAverageSnapshots(mv_avg) {
