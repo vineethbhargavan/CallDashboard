@@ -352,7 +352,13 @@ function populateQueueStats(queue, callback) {
                                 callstats.totalIncomingCalls = callstats.totalIncomingCalls - 1;
                                 updateQueue(queue, function (updatedQueue) {
                                     sails.log.info("populateQueueStats: End of Queue life" + updatedQueue.queueState);
-                                    //delete entity from database
+                                    mysql_queue.insertOrUpdate("uniqueKey", updatedQueue, function (err, qUpdated) {
+                                        if (err) { //returns if an error has occured, ie id doesn't exist.
+                                            sails.log.info('mysql_queue Update Error' + err);
+                                        } else {
+                                            sails.log.info('mysql_queue Update' + JSON.stringify(qUpdated));
+                                        }
+                                    });
 
                                 });
                             }
