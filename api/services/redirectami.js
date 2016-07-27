@@ -12,7 +12,9 @@ ami.on('userevent', function(evt) {
         if(evt.userevent == "UpdateQueue"){
                 sails.log.info("UpdateQueue"+evt.custkey);
                 //sails.controllers.waitingqueue.publishMappedCompany('operator');
-                sails.controllers.waitingqueue.updateQueueObject('dashboard',evt);
+                sails.controllers.waitingqueue.updateQueueObject('dashboard',evt,function(data){
+                    sails.log.info("UpdateQueue Executed"+data);
+                });
         }
 });
 

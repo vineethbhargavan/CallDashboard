@@ -15,7 +15,7 @@ module.exports = {
             sails.log.info('queue' + queue);
             //sails.sockets.broadcast(roomId, 'waitingqueue', queue);
         });
-    }, updateQueueObject: function (roomId, event) {
+    }, updateQueueObject: function (roomId, event,callback) {
         //Update Quue Object
         // Generate Queue Stats.
         var queueToUpdate = event;
@@ -49,9 +49,11 @@ module.exports = {
                         });
                     });
                 }
+                callback(qfound);
             });
         } else {
             sails.log.info('updateQueueObject INVALID queue Object' + err);
+            callback(err);
         }
 
     }, launchQueuedashboard: function (req, resp) {
@@ -319,10 +321,10 @@ function populateQueueStats(queue, callback) {
                             if (queue.queueState == "entrypoint_external") {
                                 callstats.totalExternalRedirections++;
                             }
-                            if (queue.queueState != "entrypoint" && queue.queueState != "terminated" && queue.queueState != "connected" && queue.queueState != "entrypoint_external") {
+                            if (queue.queueState == "finding_op" || queue.queueState == "calling_op" ) {
                                 callstats.totalCallsInQueue++;
                             }
-                            if ((queue.previousState == "entrypoint" || queue.previousState == "finding_op" || queue.previousState == "calling_op") && queue.queueState == "terminated") {
+                            if ((queue.previousState == "finding_op" || queue.previousState == "calling_op") && queue.queueState == "terminated") {
                                 callstats.abandonCount++;
                                 if (queue.abandonDuration > 140) {
                                     callstats.abandonCount_140++;
@@ -351,7 +353,7 @@ function populateQueueStats(queue, callback) {
                                 queue.queueState = "dormant";
                                 callstats.totalIncomingCalls = callstats.totalIncomingCalls - 1;
                                 updateQueue(queue, function (updatedQueue) {
-                                    sails.log.info("populateQueueStats: End of Queue life" + updatedQueue.queueState);
+                                    sails.log.info("populateQueueStats: End of Queue life updateQueue" + updatedQueue.queueState);
                                     mysql_queue.insertOrUpdate("uniqueKey", updatedQueue, function (err, qUpdated) {
                                         if (err) { //returns if an error has occured, ie id doesn't exist.
                                             sails.log.info('mysql_queue Update Error' + err);
@@ -536,6 +538,7 @@ function handleQueueTransition(queue, queueToUpdate, callback) {
         if (queue.queueState != "dormant") {
             queue.previousState = queue.queueState;
             queue.queueState = queueToUpdate.waitingtype;
+            queue.stateTransition.push(queue.queueState);
             sails.log.info("handleQueueTransition: status Swap" + queue.queueState + ":" + queueToUpdate.waitingtype);
         }
         queue.operator_id = queueToUpdate.operator;
@@ -548,12 +551,16 @@ function handleQueueTransition(queue, queueToUpdate, callback) {
 
 function initialiseQueueObject(queueToCreate, callback) {
     var queue = {};
+    var stateTransition = [];
     queue.uniqueKey = queueToCreate.custkey;
     queue.queueState = queueToCreate.waitingtype;
     queue.callerInfo = queueToCreate.cli;
     queue.company_id = queueToCreate.company_id;
     queue.operator_id = queueToCreate.operator;
     queue.previousState = queueToCreate.waitingtype;
+    queue.country_identifier = queueToCreate.countrycode;
+    stateTransition.push(queueToCreate.waitingtype);
+    queue.stateTransition = stateTransition;
     queue.startdate = new Date();
 
     r_queue.insertOrUpdate("uniqueKey", queue, function (err, updated) {

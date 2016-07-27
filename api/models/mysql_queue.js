@@ -77,6 +77,12 @@ module.exports = {
             type: 'string',
             size: 30,
             defaultsTo: '0'
+        }, country_identifier: {
+            type: 'integer',
+            size: 10,
+            defaultsTo: 0
+        },stateTransition:{
+            type: 'string'
         }
 
     }
