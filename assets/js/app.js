@@ -17,7 +17,13 @@ var roomId = roomId;
 
 $('document').ready(function () {
     setTimeout(function () {
-        socket.post('/room/queueStats', {id: 'operator', name: 'dashboard'});
+        socket.post('/room/queueStats', {id: 'operator', name: 'dashboard'},function(err,data){
+            if(err){
+                console.log('/room/queueStats Error'+err);
+            }else{
+                console.log('Data Received'+data);
+            }
+        });
     }, 3000);
 
 

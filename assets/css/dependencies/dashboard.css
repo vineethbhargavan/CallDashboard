@@ -18,11 +18,25 @@
 }
 
 
-#systemStatsSnapshotRealTime table th, td.google-visualization-table-seq{
-    display: none;
+#urgentTicketsController{
+    padding-top: 130px;
+
 }
 
-#systemStatsSnapshotRealTime table td {
+.urgent-wrapper{
+-webkit-box-shadow: 2px 5px 47px -5px rgba(0,0,0,0.75);
+-moz-box-shadow: 2px 5px 47px -5px rgba(0,0,0,0.75);
+box-shadow: 2px 5px 47px -5px rgba(0,0,0,0.75);
+}
+.urgent-title{
+    font-size: 35px;
     font-weight: bold;
-    font-style: italic;
+    text-align: center;
+}
+
+.urgent-count{
+    text-align: center;
+    color: red;
+    font-size: 65px;
+    font-weight: bold;
 }

@@ -9,13 +9,20 @@ app.controller('ticketClassificationController', function ($scope) {
         populateTicketClassification(data);
     });
 });
+app.controller('urgentTicketsController', function ($scope) {
+    socket.on('urgentTickets', function (data) {
+        console.log('Urgent'+data);
+        $scope.urgent = data;
+        $scope.$apply();
+    });
+});
 
 app.controller('guageController', function ($scope) {
     socket.on('movingCallStats', function (data) {
         //google.charts.setOnLoadCallback(populateSystemSnapShot);
         //google.charts.setOnLoadCallback(populateGuages);
         //$scope.guage = data;
-        console.log('guageController' + JSON.stringify(data));
+        //console.log('guageController' + JSON.stringify(data));
         //populateSystemSnapShotBar(data, "MovingAverage");
         populateGuages(data, "MovingAverage", 1.5);
 
@@ -93,11 +100,11 @@ function populateSystemSnapShot(stats, elementId) {
 function populateSystemSnapShotBar(stats, elementId) {
     //console.log('populateSystemSnapShotBar' + JSON.stringify(stats));
     var data = google.visualization.arrayToDataTable([
-        ['entites', 'Total', 'Blocked',{role: 'annotation'}],
-        ['Calls', stats.totalIncomingCalls - stats.totalExternalRedirections, 0,stats.totalIncomingCalls - stats.totalExternalRedirections+""],
-      ['Waiting',0,stats.totalCallsInQueue,stats.totalCallsInQueue+""],
-        ['Connected', stats.connectedCount,0,stats.connectedCount+""],
-        ['Agents', stats.loggedInOperators-stats.blocked,stats.blocked,stats.loggedInOperators-stats.blocked+"/"+stats.blocked]
+        ['entites', 'Total', 'Blocked', {role: 'annotation'}],
+        ['Calls', stats.totalIncomingCalls - stats.totalExternalRedirections, 0, stats.totalIncomingCalls - stats.totalExternalRedirections + ""],
+        ['Waiting', 0, stats.totalCallsInQueue, stats.totalCallsInQueue + ""],
+        ['Connected', stats.connectedCount, 0, stats.connectedCount + ""],
+        ['Agents', stats.loggedInOperators - stats.blocked, stats.blocked, stats.loggedInOperators - stats.blocked + "/" + stats.blocked]
     ]);
     //['Agents', stats.loggedInOperators-stats.blocked,0,stats.blocked,0,0,stats.loggedInOperators-stats.blocked+"/"+stats.blocked]
     var options = {

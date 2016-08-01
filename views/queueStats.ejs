@@ -7,7 +7,7 @@
             <div class="row">
 
                 <!-- pie chart-->
-                <div class="col-lg-5">
+                <div class="col-lg-4">
                     <div id="ticketClassificationController" ng-controller="ticketClassificationController">
 
                         <div id="ticketClassification" class="panel-body"></div>
@@ -15,7 +15,14 @@
                     </div>
                 </div>
                 <!-- end pie chart-->
-
+                <div class="col-lg-1">
+                    <div id="urgentTicketsController" ng-controller="urgentTicketsController">
+                    <div class="urgent-wrapper">
+                        <div class="urgent-title">Urgent</div>
+                        <div class="urgent-count">{{ urgent}}</div>
+</div>
+                    </div>
+                </div>
 
                 <div class="col-lg-7"  ng-controller="guageController">
 
