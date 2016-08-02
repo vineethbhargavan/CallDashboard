@@ -11,7 +11,7 @@ app.controller('ticketClassificationController', function ($scope) {
 });
 app.controller('urgentTicketsController', function ($scope) {
     socket.on('urgentTickets', function (data) {
-        console.log('Urgent'+data);
+        console.log('Urgent' + data);
         $scope.urgent = data;
         $scope.$apply();
     });
@@ -285,39 +285,68 @@ function populateTicketClassification(ticketGroups) {
     if (ticketGroups == undefined) {
         return;
     }
-    var unsubs = 0;
-    var callback = 0;
-    var manual = 0;
-    var refundEmail = 0;
-    var EmailQuery = 0;
+    var unsubs = {};
+    unsubs.nos=0;unsubs.assigned=0;unsubs.unassigned=0;unsubs.urgent =0;
+    var callback = {};
+    callback.nos=0;callback.assigned=0;callback.unassigned=0;callback.urgent =0;
+    var manual = {};
+    manual.nos=0;manual.assigned=0;manual.unassigned=0;manual.urgent =0;
+    var refundEmail = {};
+    refundEmail.nos=0;refundEmail.assigned=0;refundEmail.unassigned=0;refundEmail.urgent =0;
+    var EmailQuery = {};
+    EmailQuery.nos=0;EmailQuery.assigned=0;EmailQuery.unassigned=0;EmailQuery.urgent =0;
 
     //var enquiry_type = {'0': '19 Unsub', '1': '04 Unsub', '2': 'IncomingCall', '3': 'Callback/VM', '4': 'IncomingAnswered', '6': 'ManualTicket', '7': 'Refund Email', '8': 'Email query'};
     for (i = 0; i < ticketGroups.length; i++) {
-        if (ticketGroups[i].enquiry_type == '0' | ticketGroups[i].enquiry_type == '1')
-            unsubs = unsubs + ticketGroups[i].nos;
-        if (ticketGroups[i].enquiry_type == '3')
-            callback = callback + ticketGroups[i].nos;
-        if (ticketGroups[i].enquiry_type == '6')
-            manual = manual + ticketGroups[i].nos;
-        if (ticketGroups[i].enquiry_type == '7')
-            refundEmail = refundEmail + ticketGroups[i].nos;
-        if (ticketGroups[i].enquiry_type == '8')
-            EmailQuery = EmailQuery + ticketGroups[i].nos;
+        if (ticketGroups[i].enquiry_type == '0' | ticketGroups[i].enquiry_type == '1') {
+            unsubs.nos = unsubs.nos + ticketGroups[i].nos;
+            unsubs.assigned = unsubs.assigned + ticketGroups[i].assigned;
+            unsubs.unassigned = unsubs.unassigned + ticketGroups[i].unassigned;
+            unsubs.urgent = unsubs.urgent + ticketGroups[i].urgent;
+        }
+        if (ticketGroups[i].enquiry_type == '3') {
+            callback.nos = callback.nos + ticketGroups[i].nos;
+            callback.assigned = callback.assigned + ticketGroups[i].assigned;
+            callback.unassigned = callback.unassigned + ticketGroups[i].unassigned;
+            callback.urgent = callback.urgent + ticketGroups[i].urgent;
+        }
+        if (ticketGroups[i].enquiry_type == '6') {
+            manual.nos = manual.nos + ticketGroups[i].nos;
+            manual.assigned = manual.assigned + ticketGroups[i].assigned;
+            manual.unassigned = manual.unassigned + ticketGroups[i].unassigned;
+            manual.urgent = manual.urgent + ticketGroups[i].urgent;
+        }
+        if (ticketGroups[i].enquiry_type == '7') {
+            refundEmail.nos = refundEmail.nos + ticketGroups[i].nos;
+            refundEmail.assigned = refundEmail.assigned + ticketGroups[i].assigned;
+            refundEmail.unassigned = refundEmail.unassigned + ticketGroups[i].unassigned;
+            refundEmail.urgent = refundEmail.urgent + ticketGroups[i].urgent;
+        }
+        if (ticketGroups[i].enquiry_type == '8') {
+            EmailQuery.nos = EmailQuery.nos + ticketGroups[i].nos;
+            EmailQuery.assigned = EmailQuery.assigned + ticketGroups[i].assigned;
+            EmailQuery.unassigned = EmailQuery.unassigned + ticketGroups[i].unassigned;
+            EmailQuery.urgent = EmailQuery.urgent + ticketGroups[i].urgent;
+        }
     }
-
-    var data = google.visualization.arrayToDataTable([
-        ['Types', 'Count'],
-        ['Unsubs', unsubs],
-        ['Callbacks', callback],
-        ['Manual', manual],
-        ['RefundEmail', refundEmail],
-        ['EmailQuery', EmailQuery]
-    ]);
-
+//console.log(unsubs.urgent);
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Types');
+      data.addColumn('number', 'Count');
+      data.addColumn({'type': 'string', 'role': 'tooltip', 'p': {'html': true}})
+      data.addRows([
+        ['Unsubs', unsubs.nos,customPieToolTip(unsubs.assigned,unsubs.unassigned,unsubs.urgent)],
+        ['Callbacks', callback.nos,customPieToolTip(callback.assigned,callback.unassigned,callback.urgent)],
+        ['Manual', manual.nos,customPieToolTip(manual.assigned,manual.unassigned,manual.urgent)],
+        ['RefundEmail', refundEmail.nos, customPieToolTip(refundEmail.assigned,refundEmail.unassigned,refundEmail.urgent)], // Below limit.
+        ['EmailQuery', EmailQuery.nos,customPieToolTip(EmailQuery.assigned,EmailQuery.unassigned,EmailQuery.urgent)] // Below limit.
+      ]);
+      
     var options = {
         title: 'Ticket Classifications',
         width: 700, height: 400,
-        pieSliceText: 'value'
+        pieSliceText: 'value',
+        tooltip: {isHtml: true}
     };
 
     if ($('#ticketClassification').length <= 0) {
@@ -327,6 +356,14 @@ function populateTicketClassification(ticketGroups) {
     var chart = new google.visualization.PieChart(document.getElementById('ticketClassification'));
 
     chart.draw(data, options);
+}
+
+function customPieToolTip(assigned,unassigned,urgent){
+      return '<div style="padding:5px 5px 5px 5px;">' +
+      '<table class="pie_tooltip">' + '<tr>' +
+      '<td><b>assigned:' + assigned + '</b></td>' + '</tr>' + '<tr>' +
+      '<td><b>unassigned:' + unassigned + '</b></td>' + '</tr>' + '<tr>' +
+      '<td style="color:red"><b>Urgent:' + urgent + '</b></td>' + '</tr>' + '</table>' + '</div>';
 }
 
 function populateSystemStats(callstats, divId, title) {
