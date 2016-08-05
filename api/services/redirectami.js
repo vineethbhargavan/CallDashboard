@@ -34,8 +34,8 @@ if (ami != undefined) {
 
 process.on('uncaughtException', function (err) {
     sails.log.info(' process.on unhandled exception caught : ', err.message);
-    var ami = new require('asterisk-manager')('5038', ami_host, 'dashboard', 'abc123', true);
-    ami.keepConnected();
+    //var ami = new require('asterisk-manager')('5038', ami_host, 'dashboard', 'abc123', true);
+    //ami.keepConnected();
 
 });
 
