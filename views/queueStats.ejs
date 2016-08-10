@@ -75,7 +75,7 @@
             </div>
             
             <!-- UK Segment-->
-            <div class="row" style="background:beige">
+            <div class="row" >
                 <!-- pie chart-->
                 <div class="col-lg-4">
                     <div id="ticketClassificationControllerUK" ng-controller="ticketClassificationController">
@@ -118,7 +118,7 @@
                                 </tr>
                                 <tr> 
                                     <td>
-                                        <div id="responseRateMovingAverageUK" style="background:beige"></div>
+                                        <div id="responseRateMovingAverageUK" ></div>
                                     </td>
                                     <td>
                                         <div id="waitingTimeMovingAverageUK"></div>
@@ -128,18 +128,18 @@
                                     </td>
                                 </tr>
                             </table>
-                                        <div id="systemStatsSnapshotMovingAverageUK" style="display:none;background:beige">
+                                        <div id="systemStatsSnapshotMovingAverageUK" style="display:none;">
                                         </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="row" style="background:beige">
+            <div class="row">
                 <input type="button" class="btn" onclick="$('#movingAverageCallstatUK').toggle()" value="Historic View.."/>
                 <div class="panel panel-default">
                     <div class="panel-body" style="padding:5px;">
-                        <div id="movingAverageCallstatUK" ng-controller="lineChartController" style="display:none;background:beige">
+                        <div id="movingAverageCallstatUK" ng-controller="lineChartController" style="display:none;">
                         </div>
                     </div>
                 </div>
