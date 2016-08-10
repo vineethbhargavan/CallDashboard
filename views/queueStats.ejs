@@ -16,7 +16,7 @@
                 <div class="col-lg-1">
                     <div id="urgentTicketsController" ng-controller="urgentTicketsController">
                     <div class="urgent-wrapper">
-                        <div class="urgent-title">Urgent</div>
+                        <div class="urgent-title">Urgent-AUS</div>
                         <div class="urgent-count">{{ urgent}}</div>
                     </div>
                     </div>
@@ -65,16 +65,17 @@
             </div>
 
             <div class="row">
+                <input type="button" class="btn" onclick="$('#movingAverageCallstat').toggle()" value="Historic View.."/>
                 <div class="panel panel-default">
                     <div class="panel-body" style="padding:5px;">
-                        <div id="movingAverageCallstat" ng-controller="lineChartController" >
+                        <div id="movingAverageCallstat" ng-controller="lineChartController" style="display:none;">
                         </div>
                     </div>
                 </div>
             </div>
             
             <!-- UK Segment-->
-            <div class="row">
+            <div class="row" style="background:beige">
                 <!-- pie chart-->
                 <div class="col-lg-4">
                     <div id="ticketClassificationControllerUK" ng-controller="ticketClassificationController">
@@ -86,7 +87,7 @@
                 <div class="col-lg-1">
                     <div id="urgentTicketsControllerUK" ng-controller="urgentTicketsController">
                     <div class="urgent-wrapper">
-                        <div class="urgent-title">Urgent</div>
+                        <div class="urgent-title">Urgent-UK</div>
                         <div class="urgent-count">{{ urgentUK}}</div>
                     </div>
                     </div>
@@ -117,7 +118,7 @@
                                 </tr>
                                 <tr> 
                                     <td>
-                                        <div id="responseRateMovingAverageUK"></div>
+                                        <div id="responseRateMovingAverageUK" style="background:beige"></div>
                                     </td>
                                     <td>
                                         <div id="waitingTimeMovingAverageUK"></div>
@@ -127,17 +128,18 @@
                                     </td>
                                 </tr>
                             </table>
-                                        <div id="systemStatsSnapshotMovingAverageUK" style="display:none;">
+                                        <div id="systemStatsSnapshotMovingAverageUK" style="display:none;background:beige">
                                         </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row" style="background:beige">
+                <input type="button" class="btn" onclick="$('#movingAverageCallstatUK').toggle()" value="Historic View.."/>
                 <div class="panel panel-default">
                     <div class="panel-body" style="padding:5px;">
-                        <div id="movingAverageCallstatUK" ng-controller="lineChartController" >
+                        <div id="movingAverageCallstatUK" ng-controller="lineChartController" style="display:none;background:beige">
                         </div>
                     </div>
                 </div>

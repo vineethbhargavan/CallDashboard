@@ -1,4 +1,4 @@
-var ami_host = '192.168.0.10';
+var ami_host = '192.168.0.4';
 var ami = new require('asterisk-manager')('5038', ami_host, 'dashboard', 'abc123', true);
 //userevent{"event":"UserEvent","privilege":"user,all","userevent":"TriggerOperator","uniqueid":["1449613043.18"],"channel":"SIP/666-00000012"}
 //var io = require('sails.io.js')( require('socket.io-client') );

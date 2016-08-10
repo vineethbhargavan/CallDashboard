@@ -172,7 +172,7 @@ module.exports = {
 };
 //moving average
 var country_codes = [1, 2];
-var interval = 600000;
+var interval = 1800000;
 var realtimeFetchInterval = 0;
 var roomId = "dashboard";
 var movingAvg = setInterval(function () {
@@ -190,7 +190,7 @@ var movingAvg = setInterval(function () {
         }
     });
 
-}, 60000);
+}, interval);
 //var testmethod = setInterval(function () {
 //    iterateTest(2);
 ////    var car = {};
