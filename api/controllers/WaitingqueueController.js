@@ -4,7 +4,7 @@
  * @description :: Server-side logic for managing waitingqueues
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
-
+var uuid = require('node-uuid');
 module.exports = {
     /**
      * `WaitingqueueController.publish()`
@@ -24,25 +24,28 @@ module.exports = {
                 if (err) {
                     return callback(err);
                 } else {
-                    if (qfound[0] != undefined) {
+                    if (qfound && qfound.length) {
                         populateQueueObject(qfound[0], queueToUpdate, function (err, queue) {
                             if (err)
                                 return callback(err);
                             populateQueueStats(queue, function (err, callstats) {
+                                sails.log.info('populateQueueStats UpdateQueueObject' + callstats);
                                 if (err)
                                     return callback(err);
-                                r_responseRate.insertOrUpdate("dateTime", callstats, function (err, updated) {
-                                    if (err) { //returns if an error has occured, ie id doesn't exist.
-                                        return callback(err);
-                                    } else {
-                                        sails.log.info('r_responseRate Updated getCallStats' + JSON.stringify(updated));
-                                        publishRealtimeQueueStats(updated, function (err, realStats) {
-                                            if (err)
-                                                return callback(err);
-                                            callback(null,realStats);
-                                        });
-                                    }
-                                });
+                                if (callstats !== null) {
+                                    r_responseRate.create(callstats).exec(function (err, updated) {
+                                        if (err) { //returns if an error has occured, ie id doesn't exist.
+                                            return callback(err);
+                                        } else {
+                                            sails.log.info('r_responseRate Updated getCallStats' + JSON.stringify(updated));
+                                            publishRealtimeQueueStats(updated, function (err, realStats) {
+                                                if (err)
+                                                    return callback(err);
+                                                callback(null, realStats);
+                                            });
+                                        }
+                                    });
+                                }
                             });
                             //publishQueueToView(roomId, callstat.interval);
                         });
@@ -51,20 +54,25 @@ module.exports = {
                             if (err)
                                 return callback(err);
                             populateQueueStats(queue, function (err, callstats) {
+                                sails.log.info('populateQueueStats initialiseQueueObject' + callstats);
                                 if (err)
                                     return callback(err);
-                                r_responseRate.insertOrUpdate("dateTime", callstats, function (err, updated) {
-                                    if (err) { //returns if an error has occured, ie id doesn't exist.
-                                        return callback(err);
-                                    } else {
-                                        sails.log.info('r_responseRate Updated getCallStats' + JSON.stringify(updated));
-                                        publishRealtimeQueueStats(updated, function (err, realStats) {
-                                            if (err)
-                                                return callback(err);
-                                            callback(null,realStats);
-                                        });
-                                    }
-                                });
+                                if (callstats !== null) {
+                                    r_responseRate.create(callstats).exec(function (err, updated) {
+                                        if (err) { //returns if an error has occured, ie id doesn't exist.
+                                            return callback(err);
+                                        } else {
+                                            sails.log.info('r_responseRate Updated getCallStats' + JSON.stringify(updated));
+                                            publishRealtimeQueueStats(updated, function (err, realStats) {
+                                                if (err)
+                                                    return callback(err);
+                                                callback(null, realStats);
+                                            });
+                                        }
+                                    });
+                                } else {
+                                    sails.log.info('EMPTY');
+                                }
                             });
                         });
                     }
@@ -80,7 +88,7 @@ module.exports = {
         });
 
 
-    }, populateQueuedashboard: function (req,callback) {
+    }, populateQueuedashboard: function (req) {
         var roomId = req.param('name');
         sails.log.info('join request' + roomId);
         sails.log.info('SocketID' + sails.sockets.getId(req));
@@ -88,34 +96,61 @@ module.exports = {
         var queue = {};
         populateQueueStats(queue, function (err, callstats) {
             if (err)
-                return callback(err);
-            r_responseRate.insertOrUpdate("dateTime", callstats, function (err, updated) {
-                if (err) { //returns if an error has occured, ie id doesn't exist.
-                    return callback(err);
-                } else {
-                    sails.log.info('r_responseRate Updated getCallStats' + JSON.stringify(updated));
-                    var rrate = {};
-                    rrate.dateTime = new Date().getTime();
-                    lastInterval = rrate.dateTime - interval;
-                    rrate.timestamp = rrate.dateTime;
-                    publishRealtimeQueueStats(updated, function (err, realStats) {
-                        if (err)
-                             return callback(err);
+                sails.log.info('populateQueueStats ERROR');
+            if (callstats !== null) {
+                r_responseRate.create(callstats).exec(function (err, updated) {
+                    if (err) { //returns if an error has occured, ie id doesn't exist.
+                        sails.log.info('populateQueueStats ERROR');
+                    } else {
+                        sails.log.info('r_responseRate Updated getCallStats' + JSON.stringify(updated));
+                        var lastInterval = new Date().getTime() - interval;
+                        publishRealtimeQueueStats(updated, function (err, realStats) {
+                            if (err)
+                                sails.log.info('populateQueueStats ERROR');
+                        });
+                        populateMovingAverageStats(lastInterval, function (err, result) {
+                            if (err)
+                                sails.log.info('populateQueueStats ERROR');
+                            sails.log.info('populateMovingAverageStats Result upon launch' + JSON.stringify(result));
+                            updateMovingAverageSnapshots(result, function (err, updated) {
+                                if (err)
+                                    sails.log.info('populateQueueStats ERROR');
+                                //sails.log.info('updateMovingAverageSnapshots Result' + JSON.stringify(updated));
+                            });
+                        });
+                        //pupulateTicketGraph();
+                    }
+                });
+                sails.log.info('populateQueueStats SUCCESS');
+            } else {
+                sails.log.info('populateQueueStats EMPTY');
+                for (i = 0; i < country_codes.length; i++) {
+                    var callstats = new r_responseRate._model({uuid: uuid.v1(), waitingTime: 0, abandonTime: 0, connectedTime: 0, connectedCount: 0, abandonCount: 0, totalIncomingCalls: 0, totalExternalRedirections: 0, abandonCount_10: 0, abandonCount_30: 0, abandonCount_120: 0, abandonCount_140: 0, timeoutCount: 0, timeoutTime: 0, responseRate: 0, abandonRate: 0, timestamp: 0, totalCallsInQueue: 0, loggedInOperators: 0});
+                    callstats.country_identifier = country_codes[i];
+                    r_responseRate.create(callstats).exec(function (err, updated) {
+                        publishRealtimeQueueStats(updated, function (err, realStats) {
+                            if (err)
+                                sails.log.info('populateQueueStats ERROR');
+                        });
+                        var lastInterval = new Date().getTime() - interval;
+                        populateMovingAverageStats(lastInterval, function (err, result) {
+                            if (err)
+                                sails.log.info('populateQueueStats ERROR');
+                            sails.log.info('populateMovingAverageStats Result upon launch' + JSON.stringify(result));
+                            updateMovingAverageSnapshots(result, function (err, updated) {
+                                if (err)
+                                    sails.log.info('populateQueueStats ERROR');
+                                //sails.log.info('updateMovingAverageSnapshots Result' + JSON.stringify(updated));
+                            });
+                        });
                     });
 
-                    populateMovingAverageStats(rrate, lastInterval, function (err, result) {
-                        if (err)
-                            return callback(err);
-                        sails.log.info('populateMovingAverageStats Result upon launch' + JSON.stringify(result));
-                    });
-                    //pupulateTicketGraph();
                 }
-            });
-            callback(null,callstats);
+            }
         });
 
 
-    }, launchTicketGraph: function (req,callback) { //not used
+    }, launchTicketGraph: function (req, callback) { //not used
         pupulateTicketGraph(function (err, ticketResult) {
             if (err)
                 return callback(err);
@@ -124,246 +159,206 @@ module.exports = {
     }
 };
 //moving average
-var interval = 1800000;
+var country_codes = [1, 2];
+var interval = 240000;
 var realtimeFetchInterval = 0;
 var roomId = "dashboard";
 var movingAvg = setInterval(function () {
-    var queue = {};
-    populateQueueStats(queue, function (err, callstats) {
-        if (err)
-            sails.log.info('populateQueueStats Error' + err);
-        r_responseRate.insertOrUpdate("dateTime", callstats, function (err, updated) {
-            if (err) { //returns if an error has occured, ie id doesn't exist.
-                sails.log.info('r_responseRate Update Error' + err);
-
-            } else {
-                sails.log.info('r_responseRate Updated getCallStats' + JSON.stringify(updated));
-                var rrate = {};
-                rrate.dateTime = new Date().getTime();
-                rrate.timestamp = rrate.dateTime;
-                lastInterval = rrate.dateTime - interval;
-                //publishRealtimeQueueStats();
-                populateMovingAverageStats(rrate, lastInterval, function (err, result) {
-                    if (err)
-                        sails.log.info('populateMovingAverageStats Error' + err);
-                });
-            }
-        });
+    var lastInterval = new Date().getTime() - interval;
+    //publishRealtimeQueueStats();
+    populateMovingAverageStats(lastInterval, function (err, result) {
+        if (err) {
+            sails.log.info('populateMovingAverageStats Error' + err);
+        } else {
+            updateMovingAverageSnapshots(result, function (err, updated) {
+                if (err)
+                    return callback(err);
+                //sails.log.info('updateMovingAverageSnapshots Result' + JSON.stringify(updated));
+            });
+        }
     });
 
 }, interval);
-
-function pupulateTicketGraph(callback) {
-    ticket_count_by_enquiry_type.find().exec(function (err, types) {
-        if (err)
-            return callback(err);
-        sails.log.info('pupulateTicketGraph' + JSON.stringify(types));
-        sails.sockets.broadcast(roomId, 'ticketClassification', types);
-        callback(null,types);
-    });
-    populateUrgentTicketCount(function(err,result){
-        if (err)
-            return callback(err);
-        sails.sockets.broadcast(roomId, 'urgentTickets', result);
-        sails.log.info('poupulateUrgentTicketCount Result' + result);
-    })
-}
-function populateUrgentTicketCount(callback){
-    ticket_urgent.find().exec(function (err, result) {
-        if (err)
-            return callback(err);
-        sails.log.info('poupulateUrgentTicketCount' + result[0].count);
-        callback(null,result[0].count);
-    });
-}
-//Need to improve the below function
-function populateMovingAverageStats(rrate, lastInterval, callback) {
-    try {
-        var updatedStats ={};
-        mv_responseRate.insertOrUpdate("dateTime", rrate, function (err, mv_rrate) {
+//var testmethod = setInterval(function () {
+//    iterateTest(2);
+////    var car = {};
+////    car.name = 'sdfdsf';
+////    var key = 'model';
+////    car[key] = 'country_identifier';
+////    //sails.log.info('testmethod' + car[key]);
+////    var country_identifier = 2;
+////    var where_key1 = 'country_identifier';
+////    var criteria = {};
+////    criteria[where_key1] = {'!': 0};
+////    r_responseRate.find(criteria).average(where_key1).exec(function (err, qresult) {
+////        sails.log.info('qresult' + qresult[0][where_key1]);
+////    });
+//
+//}, 6000);
+//
+//function iterateTest(country_identifier) {
+//    sails.log.info('iterateTest country + time' + country_identifier);
+//    var callstats = new r_responseRate._model({uuid: uuid.v1(),waitingTime:0});
+//    sails.log.info('iterateTest' + JSON.stringify(callstats));
+//    
+////    callstats.dateTime = new Date().getTime();
+////    callstats.timestamp = callstats.dateTime;
+////    callstats.country_identifier = country_identifier;
+////    r_responseRate.create(callstats).exec(function (err, callstats) {
+////        if (err){
+////            sails.log.info('iterateTest ERROR');
+////            return callback(err);
+////        }
+////        sails.log.info('iterateTest' + JSON.stringify(callstats));
+////        callback(null, callstats);
+////    });
+//}
+function populateTicketGraphBasedOnCountry(callback) {
+    for (i = 0; i < country_codes.length; i++) {
+        extractTicketDetails(country_codes[i], function (err, extractedStats) {
             if (err)
                 return callback(err);
-            sails.log.info("To mv_responseRate" + mv_rrate.dateTime);
-            //updateMovingAverageSnapshots(mv_rrate);
-            r_responseRate.find({timestamp: {'>': lastInterval, '<': mv_rrate.dateTime}, waitingTime: {'!': 0}}).average('waitingTime').exec(function (err, rrate) {
-                if (err)
-                    return callback(err);
-                sails.log.info("r_responseRate sum@@@(waitingTime) " + JSON.stringify(rrate));
-                sails.log.info("r_responseRate sum@@@(waitingTime) " + rrate[0].waitingTime);
-                if (rrate[0] !== undefined & !isNaN(rrate[0].waitingTime)) {
-                    mv_rrate.waitingTime = rrate[0].waitingTime;
-                    updateMovingAverageSnapshots(mv_rrate, function (err, updated) {
-                        if (err)
-                            return callback(err);
-                        updatedStats = updated;
-                    });
-                }
-            });
-            r_responseRate.find({timestamp: {'>': lastInterval, '<': mv_rrate.dateTime}, abandonTime: {'!': 0}}).average('abandonTime').exec(function (err, rrate) {
-                if (err)
-                    return callback(err);
-                sails.log.info("r_responseRate sum@@@(abandonTime) " + JSON.stringify(rrate));
-                if (rrate[0] !== undefined & !isNaN(rrate[0].abandonTime)) {
-                    mv_rrate.abandonTime = rrate[0].abandonTime;
-                    updateMovingAverageSnapshots(mv_rrate, function (err, updated) {
-                        if (err)
-                            return callback(err);
-                        updatedStats = updated;
-                    });
-                }
-            });
-            r_responseRate.find({timestamp: {'>': lastInterval, '<': mv_rrate.dateTime}, connectedTime: {'!': 0}}).average('connectedTime').exec(function (err, rrate) {
-                if (err)
-                    return callback(err);
-                sails.log.info("r_responseRate sum@@@(connectedTime) " + JSON.stringify(rrate));
-                if (rrate[0] !== undefined & !isNaN(rrate[0].connectedTime)) {
-                    mv_rrate.connectedTime = rrate[0].connectedTime;
-                    updateMovingAverageSnapshots(mv_rrate, function (err, updated) {
-                        if (err)
-                            return callback(err);
-                        updatedStats = updated;
-                    });
-                }
-            });
-            r_responseRate.find({timestamp: {'>': lastInterval, '<': mv_rrate.dateTime}, connectedCount: {'!': 0}}).average('connectedCount').exec(function (err, rrate) {
-                if (err)
-                    return callback(err);
-                sails.log.info("r_responseRate sum@@@(connectedCount) " + JSON.stringify(rrate));
-                if (rrate[0] !== undefined & !isNaN(rrate[0].connectedCount)) {
-                    mv_rrate.connectedCount = rrate[0].connectedCount;
-                    updateMovingAverageSnapshots(mv_rrate, function (err, updated) {
-                        if (err)
-                            return callback(err);
-                        updatedStats = updated;
-                    });
-                }
-            });
-            r_responseRate.find({timestamp: {'>': lastInterval, '<': mv_rrate.dateTime}, abandonCount: {'!': 0}}).average('abandonCount').exec(function (err, rrate) {
-                if (err)
-                    return callback(err);
-                sails.log.info("r_responseRate sum@@@(abandonCount) " + JSON.stringify(rrate));
-                if (rrate[0] !== undefined & !isNaN(rrate[0].abandonCount)) {
-                    mv_rrate.abandonCount = rrate[0].abandonCount;
-                    updateMovingAverageSnapshots(mv_rrate, function (err, updated) {
-                        if (err)
-                            return callback(err);
-                        updatedStats = updated;
-                    });
-                }
-            });
-            r_responseRate.find({timestamp: {'>': lastInterval, '<': mv_rrate.dateTime}, totalIncomingCalls: {'!': 0}}).average('totalIncomingCalls').exec(function (err, rrate) {
-                if (err)
-                    return callback(err);
-                sails.log.info("r_responseRate sum@@@(totalIncomingCalls) " + JSON.stringify(rrate));
-                if (rrate[0] !== undefined & !isNaN(rrate[0].totalIncomingCalls)) {
-                    mv_rrate.totalIncomingCalls = rrate[0].totalIncomingCalls;
-                    updateMovingAverageSnapshots(mv_rrate, function (err, updated) {
-                        if (err)
-                            return callback(err);
-                        updatedStats = updated;
-                    });
-                }
-            });
-            r_responseRate.find({timestamp: {'>': lastInterval, '<': mv_rrate.dateTime}, timeoutCount: {'!': 0}}).average('timeoutCount').exec(function (err, rrate) {
-                if (err)
-                    return callback(err);
-                sails.log.info("r_responseRate sum@@@(timeoutCount) " + JSON.stringify(rrate));
-                if (rrate[0] !== undefined & !isNaN(rrate[0].timeoutCount)) {
-                    mv_rrate.timeoutCount = rrate[0].timeoutCount;
-                    updateMovingAverageSnapshots(mv_rrate, function (err, updated) {
-                        if (err)
-                            return callback(err);
-                        updatedStats = updated;
-                    });
-                }
-            });
-            r_responseRate.find({timestamp: {'>': lastInterval, '<': mv_rrate.dateTime}, timeoutTime: {'!': 0}}).average('timeoutTime').exec(function (err, rrate) {
-                if (err)
-                    return callback(err);
-                sails.log.info("r_responseRate sum@@@(timeoutTime) " + JSON.stringify(rrate));
-                if (rrate[0] !== undefined & !isNaN(rrate[0].timeoutTime)) {
-                    mv_rrate.timeoutTime = rrate[0].timeoutTime;
-                    updateMovingAverageSnapshots(mv_rrate, function (err, updated) {
-                        if (err)
-                            return callback(err);
-                        updatedStats = updated;
-                    });
-                }
-            });
-            r_responseRate.find({timestamp: {'>': lastInterval, '<': mv_rrate.dateTime}, responseRate: {'!': 0}}).average('responseRate').exec(function (err, rrate) {
-                if (err)
-                    return callback(err);
-                sails.log.info("r_responseRate sum@@@(responseRate) " + JSON.stringify(rrate));
-                if (rrate[0] !== undefined & !isNaN(rrate[0].responseRate)) {
-                    mv_rrate.responseRate = rrate[0].responseRate;
-                    updateMovingAverageSnapshots(mv_rrate, function (err, updated) {
-                        if (err)
-                            return callback(err);
-                        updatedStats = updated;
-                    });
-                }
-
-            });
-            r_responseRate.find({timestamp: {'>': lastInterval, '<': mv_rrate.dateTime}, abandonRate: {'!': 0}}).average('abandonRate').exec(function (err, rrate) {
-                if (err)
-                    return callback(err);
-                sails.log.info("r_responseRate sum@@@(abandonRate) " + JSON.stringify(rrate));
-                if (rrate[0] !== undefined & !isNaN(rrate[0].abandonRate)) {
-                    mv_rrate.abandonRate = rrate[0].abandonRate;
-                    updateMovingAverageSnapshots(mv_rrate, function (err, updated) {
-                        if (err)
-                            return callback(err);
-                        updatedStats = updated;
-                    });
-                }
-            });
-            r_responseRate.find({timestamp: {'>': lastInterval, '<': mv_rrate.dateTime}, totalCallsInQueue: {'!': 0}}).average('totalCallsInQueue').exec(function (err, rrate) {
-                if (err)
-                    return callback(err);
-                sails.log.info("r_responseRate sum@@@(totalCallsInQueue) " + JSON.stringify(rrate));
-                if (rrate[0] !== undefined & !isNaN(rrate[0].totalCallsInQueue)) {
-                    mv_rrate.totalCallsInQueue = rrate[0].totalCallsInQueue;
-                    updateMovingAverageSnapshots(mv_rrate, function (err, updated) {
-                        if (err)
-                            return callback(err);
-                        updatedStats = updated;
-                    });
-                }
-            });
-            r_responseRate.find({timestamp: {'>': lastInterval, '<': mv_rrate.dateTime}, loggedInOperators: {'!': 0}}).average('loggedInOperators').exec(function (err, rrate) {
-                if (err)
-                    return callback(err);
-                sails.log.info("r_responseRate sum@@@(loggedInOperators) " + JSON.stringify(rrate));
-                if (rrate[0] !== undefined & !isNaN(rrate[0].loggedInOperators)) {
-                    mv_rrate.loggedInOperators = rrate[0].loggedInOperators;
-                    updateMovingAverageSnapshots(mv_rrate, function (err, updated) {
-                        if (err)
-                            return callback(err);
-                        updatedStats = updated;
-                    });
-                }
-            });
-            r_responseRate.find({timestamp: {'>': lastInterval, '<': mv_rrate.dateTime}, totalExternalRedirections: {'!': 0}}).average('totalExternalRedirections').exec(function (err, rrate) {
-                if (err)
-                    return callback(err);
-                sails.log.info("r_responseRate sum@@@(totalExternalRedirections) " + JSON.stringify(rrate));
-                if (rrate[0] !== undefined & !isNaN(rrate[0].totalExternalRedirections)) {
-                    mv_rrate.totalExternalRedirections = rrate[0].totalExternalRedirections;
-                    updateMovingAverageSnapshots(mv_rrate, function (err, updated) {
-                        if (err)
-                            return callback(err);
-                        updatedStats = updated;
-                    });
-                }
-            });
-
-            callback(null,updatedStats);
+            callback(null, extractedStats);
         });
+        extractUrgentTicketDetails(country_codes[i], function (err, extractedStats) {
+            if (err)
+                return callback(err);
+            callback(null, extractedStats);
+        });
+    }
+}
+function extractTicketDetails(country_identifier,callback) {
+    ticket_count_by_enquiry_type.find({country: country_identifier}).exec(function (err, types) {
+        if (err)
+            return callback(err);
+        sails.log.info('extractTicketDetails' + JSON.stringify(types));
+        sails.sockets.broadcast(roomId, 'ticketClassification', types);
+        callback(null, types);
+    });
+
+}
+function extractUrgentTicketDetails(country_identifier,callback) {
+    ticket_count_by_enquiry_type.find({country: country_identifier}).sum('urgent').exec(function (err, urgent) {
+        if (err)
+            return callback(err);
+        
+        var result ={};
+        result.country = country_identifier;
+        result.urgent = urgent;
+        sails.log.info('extractUrgentTicketDetails' + JSON.stringify(result));
+        sails.sockets.broadcast(roomId, 'urgentTickets', result);
+        callback(null, result);
+    });
+
+}
+
+function pupulateTicketGraph(callback) {
+    populateTicketGraphBasedOnCountry(function (err, types) {
+        if (err)
+            return callback(null);
+        sails.log.info('populateTicketGraphBasedOnCountry Result' + JSON.stringify(types));
+        callback(null, types);
+    });
+}
+
+
+function populateMovingAverageStats(lastInterval, callback) {
+    try {
+        for (i = 0; i < country_codes.length; i++) {
+            extractMovingAverageStats(country_codes[i], lastInterval, function (err, extractedStats) {
+                if (err)
+                    return callback(err);
+                callback(null, extractedStats);
+            });
+        }
     } catch (err) {
         sails.log.info('exception occured:populateMovingAverageStats', err.message);
         callback(new Error('exception occured:populateMovingAverageStats'));
     }
+}
 
+
+
+function extractMovingAverageStats(country_identifier, lastInterval, callback) {
+    var mv_rrate = new mv_responseRate._model({uuid: uuid.v1(), waitingTime: 0, abandonTime: 0, connectedTime: 0, connectedCount: 0, abandonCount: 0, totalIncomingCalls: 0, totalExternalRedirections: 0, abandonCount_10: 0, abandonCount_30: 0, abandonCount_120: 0, abandonCount_140: 0, timeoutCount: 0, timeoutTime: 0, responseRate: 0, abandonRate: 0, timestamp: 0, totalCallsInQueue: 0, loggedInOperators: 0});
+    mv_rrate.timestamp = new Date().getTime();
+    mv_rrate.country_identifier = country_identifier;
+    var key = ['waitingTime', 'abandonTime', 'connectedTime', 'connectedCount', 'abandonCount', 'totalIncomingCalls', 'timeoutCount', 'timeoutTime', 'responseRate', 'abandonRate', 'totalCallsInQueue', 'loggedInOperators', 'totalExternalRedirections'];
+    extractAverageValuesForEntities(country_identifier, lastInterval, mv_rrate.timestamp, mv_rrate, key[0], function (err, mv_rrate) {
+        //sails.log.info("extractAverageValuesForEntities return" + JSON.stringify(mv_rrate));
+        if (err)
+            return callback(err);
+        extractAverageValuesForEntities(country_identifier, lastInterval, mv_rrate.timestamp, mv_rrate, key[1], function (err, mv_rrate) {
+            if (err)
+                return callback(err);
+            extractAverageValuesForEntities(country_identifier, lastInterval, mv_rrate.timestamp, mv_rrate, key[2], function (err, mv_rrate) {
+                if (err)
+                    return callback(err);
+                extractAverageValuesForEntities(country_identifier, lastInterval, mv_rrate.timestamp, mv_rrate, key[3], function (err, mv_rrate) {
+                    if (err)
+                        return callback(err);
+                    extractAverageValuesForEntities(country_identifier, lastInterval, mv_rrate.timestamp, mv_rrate, key[4], function (err, mv_rrate) {
+                        if (err)
+                            return callback(err);
+                        extractAverageValuesForEntities(country_identifier, lastInterval, mv_rrate.timestamp, mv_rrate, key[5], function (err, mv_rrate) {
+                            if (err)
+                                return callback(err);
+                            extractAverageValuesForEntities(country_identifier, lastInterval, mv_rrate.timestamp, mv_rrate, key[6], function (err, mv_rrate) {
+                                if (err)
+                                    return callback(err);
+                                extractAverageValuesForEntities(country_identifier, lastInterval, mv_rrate.timestamp, mv_rrate, key[7], function (err, mv_rrate) {
+                                    if (err)
+                                        return callback(err);
+                                    extractAverageValuesForEntities(country_identifier, lastInterval, mv_rrate.timestamp, mv_rrate, key[8], function (err, mv_rrate) {
+                                        if (err)
+                                            return callback(err);
+                                        extractAverageValuesForEntities(country_identifier, lastInterval, mv_rrate.timestamp, mv_rrate, key[9], function (err, mv_rrate) {
+                                            if (err)
+                                                return callback(err);
+                                            extractAverageValuesForEntities(country_identifier, lastInterval, mv_rrate.timestamp, mv_rrate, key[10], function (err, mv_rrate) {
+                                                if (err)
+                                                    return callback(err);
+                                                extractAverageValuesForEntities(country_identifier, lastInterval, mv_rrate.timestamp, mv_rrate, key[11], function (err, mv_rrate) {
+                                                    if (err)
+                                                        return callback(err);
+                                                    extractAverageValuesForEntities(country_identifier, lastInterval, mv_rrate.timestamp, mv_rrate, key[12], function (err, mv_rrate) {
+                                                        if (err)
+                                                            return callback(err);
+                                                        callback(null, mv_rrate);
+                                                    });
+                                                });
+                                            });
+                                        });
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+}
+
+function extractAverageValuesForEntities(country_identifier, lastInterval, currentTime, mv_rrate, key, callback) {
+    var where = {};
+    where.timestamp = {'>': lastInterval, '<': currentTime};
+    where.country_identifier = country_identifier;
+    where[key] = {'!': 0};
+    //sails.log.info("extractAverageValuesForEntities query" + JSON.stringify(where));
+    r_responseRate.find(where).average(key).exec(function (err, rrate) {
+        if (err)
+            return callback(err);
+        //sails.log.info("r_responseRate sum@@@" + key + ":" + JSON.stringify(rrate));
+        if (rrate[0] !== undefined & !isNaN(rrate[0][key])) {
+            mv_rrate[key] = rrate[0][key];
+            callback(null, mv_rrate);
+        } else {
+            //continue
+            mv_rrate[key] = 0;
+            callback(null, mv_rrate);
+        }
+    });
 }
 
 
@@ -388,7 +383,6 @@ function populateOperatorStats(callback) {
                     sails.log.info("populateOperatorStats return" + JSON.stringify(operatorStats));
                     callback(null, operatorStats);
                 });
-
             });
         });
     });
@@ -396,106 +390,138 @@ function populateOperatorStats(callback) {
 function populateQueueStats(queue, callback) {
     try {
         if (queue != undefined) {
-            var rrate = {};
-            rrate.dateTime = new Date().getTime();
-            rrate.timestamp = rrate.dateTime;
-            r_responseRate.insertOrUpdate("dateTime", rrate, function (err, callstats) {
+            extractQueueStatsBasedOnCountry(function (err, callstatus) {
                 if (err)
                     return callback(err);
-                sails.log.info("Initialised RR object" + JSON.stringify(callstats));
-                populateOperatorStats(function (err, operatorStats) {
-                    if (err)
-                        return callback(err);
-                    //Opprf.count({where: {flag: 1, id: {'!': ['1025', '1050']}}}).exec(function (err, operators) {
-                    callstats.loggedInOperators = operatorStats.totalOperators;
-                    callstats.incoming = operatorStats.incoming;
-                    callstats.outgoing = operatorStats.outgoing;
-                    callstats.idle = operatorStats.idle;
-                    callstats.blocked = operatorStats.blocked;
-                    r_queue.find({queueState: {'!': 'dormant'}}).exec(function (err, qresult) {
+                if (callstatus !== null) {
+                    //get the other details.
+                    populateOperatorStats(function (err, operatorStats) {
                         if (err)
                             return callback(err);
-                        callstats.totalIncomingCalls = qresult.length;
-                        for (i = 0; i < qresult.length; i++) {
-                            var queue = qresult[i];
-                            sails.log.info("populateQueueStats:" + JSON.stringify(queue));
-                            if (queue.queueState == "timeout") {
-                                callstats.timeoutCount++;
-                                callstats.timeoutTime = (callstats.timeoutTime + queue.timeoutDuration);
-                            }
-                            if (queue.queueState == "entrypoint_external") {
-                                callstats.totalExternalRedirections++;
-                            }
-                            if (queue.queueState == "finding_op" || queue.queueState == "calling_op") {
-                                callstats.totalCallsInQueue++;
-                            }
-                            if ((queue.previousState == "finding_op" || queue.previousState == "calling_op") && queue.queueState == "terminated") {
-                                callstats.abandonCount++;
-                                if (queue.abandonDuration > 140) {
-                                    callstats.abandonCount_140++;
-                                } else if (queue.abandonDuration > 30 && queue.abandonDuration < 141) {
-                                    callstats.abandonCount_120++;
-                                } else if (queue.abandonDuration > 10 && queue.abandonDuration < 31) {
-                                    callstats.abandonCount_30++;
-                                } else {
-                                    callstats.abandonCount_10++;
-                                }
-                                callstats.abandonTime = (callstats.abandonTime + queue.abandonDuration);
-
-                            }
-                            if (queue.queueState == "connected") {
-                                callstats.connectedCount++;
-                                callstats.waitingTime = (callstats.waitingTime + queue.waitingDuration);
-                                sails.log.info("callstats.waitingTime" + callstats.waitingTime);
-                                //callstats.responseRate = (callstats.connectedCount / (callstats.connectedCount + callstats.timeoutCount)) * 100;
-
-                            }
-                            if (queue.previousState == "connected" && queue.queueState == "terminated") {
-                                callstats.connectedTime = (callstats.connectedTime + queue.connectedDuration);
-                            }
-                            if (queue.queueState == "terminated") {
-                                sails.log.info("populateQueueStats: End of Queue life" + JSON.stringify(queue));
-                                queue.queueState = "dormant";
-                                callstats.totalIncomingCalls = callstats.totalIncomingCalls - 1;
-                                updateQueue(queue, function (err, updatedQueue) {
-                                    if (err)
-                                        return callback(err);
-                                    sails.log.info("populateQueueStats: End of Queue life updateQueue" + updatedQueue.queueState);
-                                    mysql_queue.insertOrUpdate("uniqueKey", updatedQueue, function (err, qUpdated) {
-                                        if (err) { //returns if an error has occured, ie id doesn't exist.
-                                            sails.log.info('mysql_queue Update Error' + err);
-                                            return callback(err);
-                                        } else {
-                                            sails.log.info('mysql_queue Update' + JSON.stringify(qUpdated));
-                                        }
-                                    });
-
-                                });
-                            }
-                        }
-                        if ((callstats.connectedCount + callstats.timeoutCount) != 0)
-                            callstats.responseRate = (callstats.connectedCount / (callstats.connectedCount + callstats.timeoutCount)) * 100;
-                        if (callstats.totalIncomingCalls != 0)
-                            callstats.abandonRate = (callstats.abandonCount / callstats.totalIncomingCalls) * 100;
-                        if (callstats.timeoutCount != 0)
-                            callstats.timeoutTime = (callstats.timeoutTime) / callstats.timeoutCount;
-                        if (callstats.abandonCount != 0)
-                            callstats.abandonTime = (callstats.abandonTime) / callstats.abandonCount;
-                        if (callstats.connectedCount != 0)
-                            callstats.waitingTime = (callstats.waitingTime) / callstats.connectedCount;
-                        if (callstats.connectedCount != 0)
-                            callstats.connectedTime = (callstats.connectedTime) / callstats.connectedCount;
-                        sails.log.info("Callstats" + JSON.stringify(callstats));
-                        callback(null, callstats);
-
+                        //Opprf.count({where: {flag: 1, id: {'!': ['1025', '1050']}}}).exec(function (err, operators) {
+                        callstatus.loggedInOperators = operatorStats.totalOperators;
+                        callstatus.incoming = operatorStats.incoming;
+                        callstatus.outgoing = operatorStats.outgoing;
+                        callstatus.idle = operatorStats.idle;
+                        callstatus.blocked = operatorStats.blocked;
+                        callback(null, callstatus);
                     });
-                });
-                //callback(callstats);
+                } else {
+                    //empty snapshot
+                    return callback(null, null)
+                }
             });
         }
     } catch (err) {
         sails.log.info('exception occured populateQueueStats:', err.message);
     }
+}
+function extractQueueStatsBasedOnCountry(callback) {
+    for (i = 0; i < country_codes.length; i++) {
+        extractQueueStatsFromQueue(country_codes[i], function (err, extractedStats) {
+            if (err) {
+                return callback(err);
+            } else {
+                sails.log.info("extractQueueStatsFromQueue: successful" + JSON.stringify(extractedStats));
+                callback(null, extractedStats);
+            }
+        });
+    }
+}
+
+function extractQueueStatsFromQueue(country_identifier, callback) {
+    sails.log.info('extractQueueStatsFromQueue input:', country_identifier);
+    r_queue.find({where: {country_identifier: country_identifier, queueState: {'!': 'dormant'}}}).exec(function (err, qresult) {
+        if (err)
+            return callback(err);
+        if (qresult.length == 0) {
+            //ignore
+            return callback(null, null);
+        } else {
+            var callstats = new r_responseRate._model({uuid: uuid.v1(), waitingTime: 0, abandonTime: 0, connectedTime: 0, connectedCount: 0, abandonCount: 0, totalIncomingCalls: 0, totalExternalRedirections: 0, abandonCount_10: 0, abandonCount_30: 0, abandonCount_120: 0, abandonCount_140: 0, timeoutCount: 0, timeoutTime: 0, responseRate: 0, abandonRate: 0, timestamp: 0, totalCallsInQueue: 0, loggedInOperators: 0});
+            callstats.timestamp = new Date().getTime();
+            callstats.totalIncomingCalls = qresult.length;
+            callstats.country_identifier = country_identifier;
+            for (i = 0; i < qresult.length; i++) {
+                var queue = qresult[i];
+                sails.log.info("extractQueueStatsFromQueue:" + JSON.stringify(queue));
+                switch (queue.queueState) {
+                    case "timeout":
+                        callstats.timeoutCount++;
+                        callstats.timeoutTime = (callstats.timeoutTime + queue.timeoutDuration);
+                        break;
+                    case "entrypoint_external":
+                        callstats.totalExternalRedirections++;
+                        break;
+                    case "connected":
+                        callstats.connectedCount++;
+                        callstats.waitingTime = (callstats.waitingTime + queue.waitingDuration);
+                        sails.log.info("callstats.waitingTime" + callstats.waitingTime);
+                        break;
+                    case "calling_op":
+                        callstats.totalCallsInQueue++;
+                        break;
+                    case "finding_op":
+                        callstats.totalCallsInQueue++;
+                        break;
+                    case "terminated":
+                        if ((queue.previousState === "finding_op" || queue.previousState === "calling_op")) {
+                            callstats.abandonCount++;
+                            if (queue.abandonDuration > 140) {
+                                callstats.abandonCount_140++;
+                            } else if (queue.abandonDuration > 30 && queue.abandonDuration < 141) {
+                                callstats.abandonCount_120++;
+                            } else if (queue.abandonDuration > 10 && queue.abandonDuration < 31) {
+                                callstats.abandonCount_30++;
+                            } else {
+                                callstats.abandonCount_10++;
+                            }
+                            callstats.abandonTime = (callstats.abandonTime + queue.abandonDuration);
+
+                        } else if (queue.previousState === "connected") {
+                            callstats.connectedTime = (callstats.connectedTime + queue.connectedDuration);
+                        } else {
+                            //Not sure.
+                        }
+                        //Save to mysql
+                        sails.log.info("extractQueueStatsFromQueue: End of Queue life" + JSON.stringify(queue));
+                        queue.queueState = "dormant";
+                        callstats.totalIncomingCalls = callstats.totalIncomingCalls - 1;
+                        updateQueue(queue, function (err, updatedQueue) {
+                            if (err)
+                                return callback(err);
+                            sails.log.info("extractQueueStatsFromQueue: End of Queue life updateQueue" + updatedQueue.queueState);
+                            mysql_queue.create(updatedQueue).exec(function (err, qUpdated) {
+                                if (err) { //returns if an error has occured, ie id doesn't exist.
+                                    sails.log.info('mysql_queue Update Error' + err);
+                                    return callback(err);
+                                } else {
+                                    sails.log.info('mysql_queue Update' + JSON.stringify(qUpdated));
+                                }
+                            });
+
+                        });
+                        break;
+                }
+            }
+            if ((callstats.connectedCount + callstats.timeoutCount) != 0)
+                callstats.responseRate = (callstats.connectedCount / (callstats.connectedCount + callstats.timeoutCount)) * 100;
+            if (callstats.totalIncomingCalls != 0)
+                callstats.abandonRate = (callstats.abandonCount / callstats.totalIncomingCalls) * 100;
+            if (callstats.timeoutCount != 0)
+                callstats.timeoutTime = (callstats.timeoutTime) / callstats.timeoutCount;
+            if (callstats.abandonCount != 0)
+                callstats.abandonTime = (callstats.abandonTime) / callstats.abandonCount;
+            if (callstats.connectedCount != 0)
+                callstats.waitingTime = (callstats.waitingTime) / callstats.connectedCount;
+            if (callstats.connectedCount != 0)
+                callstats.connectedTime = (callstats.connectedTime) / callstats.connectedCount;
+            sails.log.info("Callstats extractQueueStatsFromQueue " + JSON.stringify(callstats));
+            callback(null, callstats);
+        }
+
+
+    });
 }
 
 function updateQueue(queue, callback) {
@@ -515,7 +541,7 @@ function updateQueue(queue, callback) {
 }
 
 function updateMovingAverageSnapshots(mv_avg, callback) {
-    mv_responseRate.insertOrUpdate("dateTime", mv_avg, function (err, mvUpdated) {
+    mv_responseRate.create(mv_avg).exec(function (err, mvUpdated) {
         if (err) { //returns if an error has occured, ie id doesn't exist.
             sails.log.info('mv_responseRate Update Error' + err);
             return callback(err);
@@ -530,7 +556,7 @@ function updateMovingAverageSnapshots(mv_avg, callback) {
                 if (err)
                     return callback(err);
             });
-            callback(null,mvUpdated);
+            callback(null, mvUpdated);
         }
     });
 }
@@ -539,12 +565,15 @@ function publishMovingAverageStats(mvAverage, callback) {
     var currentTime = new Date().getTime();
     var previousInterval = currentTime - 86400000;
     sails.log.info('publishMovingAverageStats' + JSON.stringify(mvAverage));
-    mv_responseRate.find({timestamp: {'>': previousInterval, '<': currentTime}}).exec(function (err, qresult) {
+    mv_responseRate.find({timestamp: {'>': previousInterval, '<': currentTime},country_identifier:mvAverage.country_identifier}).exec(function (err, qresult) {
         if (err)
             return callback(err);
         //sails.log.info('publishMovingAverageStats Array List' + JSON.stringify(qresult));
-        sails.sockets.broadcast(roomId, 'movingSystemStats', qresult);
-        callback(null,qresult);
+        var result ={};
+        result.country_identifier = mvAverage.country_identifier;
+        result.data = qresult;
+        sails.sockets.broadcast(roomId, 'movingSystemStats', result);
+        callback(null, qresult);
     });
 }
 function publishRealtimeQueueStats(qStats, callback) {
@@ -555,13 +584,14 @@ function publishRealtimeQueueStats(qStats, callback) {
     pupulateTicketGraph(function (err, ticketResult) {
         if (err)
             return callback(err);
+        callback(null, ticketResult);
     });
-    r_responseRate.find({timestamp: {'>': previousInterval, '<': currentTime}}).exec(function (err, qresult) {
-        if (err)
-            return callback(err);
-        sails.sockets.broadcast(roomId, 'realtimeSystemStats', qresult);
-        callback(null,qresult);
-    });
+//    r_responseRate.find({timestamp: {'>': previousInterval, '<': currentTime}}).exec(function (err, qresult) {
+//        if (err)
+//            return callback(err);
+//        sails.sockets.broadcast(roomId, 'realtimeSystemStats', qresult);
+//        callback(null, qresult);
+//    });
 }
 
 function populateQueueObject(queue, queueToUpdate, callback) {
@@ -581,31 +611,38 @@ function populateQueueObject(queue, queueToUpdate, callback) {
     });
 
 }
+
 function handleQueueTransition(queue, queueToUpdate, callback) {
     try {
         sails.log.info("handleQueueTransition:" + queue.queueState + ":" + queueToUpdate.waitingtype);
         queueToUpdate.current_time = parseInt(queueToUpdate.current_time);
         queueToUpdate.previous_state_time = parseInt(queueToUpdate.previous_state_time);
-        if (queueToUpdate.waitingtype == "finding_op") {
-            queue.queueEntryTime = queueToUpdate.current_time;
-            sails.log.info("handleQueueTransition: queueEntryTime" + queue.queueEntryTime);
-        } else if (queueToUpdate.waitingtype == "connected") {
-            queue.waitingDuration = queueToUpdate.current_time - queueToUpdate.previous_state_time;
-            queue.callconnectedTime = queueToUpdate.current_time;
-            sails.log.info("handleQueueTransition: waitingDuration" + queue.waitingDuration);
-        } else if (queueToUpdate.waitingtype == "terminated" && queue.queueState == "connected") {
-            queue.connectedDuration = queueToUpdate.current_time - queueToUpdate.previous_state_time;
-            sails.log.info("handleQueueTransition: connectedDuration" + queue.connectedDuration);
-        } else if (queueToUpdate.waitingtype == "terminated" && (queue.queueState == "entrypoint" || queue.queueState == "finding_op" || queue.queueState == "calling_op")) {
-            queue.abandonDuration = queueToUpdate.current_time - queueToUpdate.previous_state_time;
-            sails.log.info("handleQueueTransition: abandonDuration" + queue.abandonDuration);
-        } else if (queueToUpdate.waitingtype == "timeout") {
-            queue.timeoutDuration = queueToUpdate.current_time - queue.queueEntryTime;
-            sails.log.info("handleQueueTransition: timeout" + queue.timeoutDuration);
-        } else {
-            sails.log.info("handleQueueTransition: Ignored State" + JSON.stringify(queue));
-        }
+        switch (queueToUpdate.waitingtype) {
+            case 'finding_op':
+                queue.queueEntryTime = queueToUpdate.current_time;
+                sails.log.info("handleQueueTransition: queueEntryTime" + queue.queueEntryTime);
+                break;
+            case 'connected':
+                queue.waitingDuration = queueToUpdate.current_time - queueToUpdate.previous_state_time;
+                queue.callconnectedTime = queueToUpdate.current_time;
+                sails.log.info("handleQueueTransition: waitingDuration" + queue.waitingDuration);
+                break;
+            case 'terminated':
+                if (queue.queueState == "connected") {
+                    queue.connectedDuration = queueToUpdate.current_time - queueToUpdate.previous_state_time;
+                    sails.log.info("handleQueueTransition: connectedDuration" + queue.connectedDuration);
+                }
+                if (queue.queueState == "entrypoint" || queue.queueState == "finding_op" || queue.queueState == "calling_op") {
+                    queue.abandonDuration = queueToUpdate.current_time - queueToUpdate.previous_state_time;
+                    sails.log.info("handleQueueTransition: abandonDuration" + queue.abandonDuration);
+                }
+                break;
+            case 'timeout':
+                queue.timeoutDuration = queueToUpdate.current_time - queue.queueEntryTime;
+                sails.log.info("handleQueueTransition: timeout" + queue.timeoutDuration);
+                break;
 
+        }
         if (queue.queueState != "dormant") {
             queue.previousState = queue.queueState;
             queue.queueState = queueToUpdate.waitingtype;
@@ -622,9 +659,8 @@ function handleQueueTransition(queue, queueToUpdate, callback) {
 }
 
 function initialiseQueueObject(queueToCreate, callback) {
-    var queue = {};
+    var queue = new r_queue._model({uniqueKey: queueToCreate.custkey});
     var stateTransition = [];
-    queue.uniqueKey = queueToCreate.custkey;
     queue.queueState = queueToCreate.waitingtype;
     queue.callerInfo = queueToCreate.cli;
     queue.company_id = queueToCreate.company_id;
@@ -635,7 +671,7 @@ function initialiseQueueObject(queueToCreate, callback) {
     queue.stateTransition = stateTransition;
     queue.startdate = new Date();
 
-    r_queue.insertOrUpdate("uniqueKey", queue, function (err, updated) {
+    r_queue.create(queue).exec(function (err, updated) {
         if (err) { //returns if an error has occured, ie id doesn't exist.
             sails.log.info('r_queue Update Error' + err);
             return callback(err);

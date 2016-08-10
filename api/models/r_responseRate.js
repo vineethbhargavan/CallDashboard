@@ -8,8 +8,8 @@
 module.exports = {
     connection: 'redis',
     attributes: { 
-        dateTime: {
-            type: 'integer',
+        uuid: {
+            type: 'string',
             primaryKey: true,
             required: true
         }, waitingTime: {
@@ -95,6 +95,10 @@ module.exports = {
             size: 10,
             defaultsTo: 0
         },blocked:{
+            type: 'integer',
+            size: 10,
+            defaultsTo: 0
+        }, country_identifier: {
             type: 'integer',
             size: 10,
             defaultsTo: 0

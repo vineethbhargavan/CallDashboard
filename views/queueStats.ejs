@@ -1,34 +1,30 @@
-<!DOCTYPE html>
+8<!DOCTYPE html>
 <html>
     <head></head>
     <body data-ng-app="myApp">
-        <div class="row">
+        <!--div class="row"-->
 
             <div class="row">
-
                 <!-- pie chart-->
                 <div class="col-lg-4">
                     <div id="ticketClassificationController" ng-controller="ticketClassificationController">
-
                         <div id="ticketClassification" class="panel-body"></div>
-
                     </div>
                 </div>
                 <!-- end pie chart-->
+
                 <div class="col-lg-1">
                     <div id="urgentTicketsController" ng-controller="urgentTicketsController">
                     <div class="urgent-wrapper">
                         <div class="urgent-title">Urgent</div>
                         <div class="urgent-count">{{ urgent}}</div>
-</div>
+                    </div>
                     </div>
                 </div>
 
                 <div class="col-lg-7"  ng-controller="guageController">
-
                     <div class="row">
                         <div id="realTimeGuageController" ng-controller="realTimeGuageController">
-
                             <table class="table table-bordered table-striped">
                                 <tr>
                                     <td colspan="3"><strong>Real Time</strong></td>
@@ -38,81 +34,124 @@
                                         <div id="systemStatsSnapshotRealTime">
                                         </div>
                                     </td>
-
                                     <td>
                                         <div id="responseRateRealTime"></div>
                                     </td>
                                     <td>
-
                                         <div id="waitingTimeRealTime"></div>
                                         <div id="talkingTimeRealTime" style="display:none;"></div>
                                     </td>
-
-
-
-
                                 </tr>
-
-
                                 <tr>
                                     <td colspan="3"><strong>Average</strong></td>
                                 </tr>
                                 <tr> 
-
                                     <td>
                                         <div id="responseRateMovingAverage"></div>
                                     </td>
                                     <td>
-
                                         <div id="waitingTimeMovingAverage"></div>
                                     </td>
                                     <td>
                                         <div id="talkingTimeMovingAverage"></div>
                                     </td>
-
                                 </tr>
-
                             </table>
                                         <div id="systemStatsSnapshotMovingAverage" style="display:none;">
                                         </div>
-
-
-
-
-
-
-
                         </div>
-
                     </div>
-
-
-
-
-
                 </div>
-
             </div>
-
 
             <div class="row">
-
                 <div class="panel panel-default">
                     <div class="panel-body" style="padding:5px;">
-                        <div id="movingAverageCallstat" ng-controller="lineChartController">
+                        <div id="movingAverageCallstat" ng-controller="lineChartController" style="display:none;">
                         </div>
                     </div>
+                </div>
+            </div>
+            
+            <!-- UK Segment-->
+            <div class="row">
+                <!-- pie chart-->
+                <div class="col-lg-4">
+                    <div id="ticketClassificationControllerUK" ng-controller="ticketClassificationController">
+                        <div id="ticketClassificationUK" class="panel-body"></div>
+                    </div>
+                </div>
+                <!-- end pie chart-->
 
+                <div class="col-lg-1">
+                    <div id="urgentTicketsControllerUK" ng-controller="urgentTicketsController">
+                    <div class="urgent-wrapper">
+                        <div class="urgent-title">Urgent</div>
+                        <div class="urgent-count">{{ urgentUK}}</div>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-7"  ng-controller="guageController">
+                    <div class="row">
+                        <div id="realTimeGuageControllerUK" ng-controller="realTimeGuageController">
+                            <table class="table table-bordered table-striped">
+                                <tr>
+                                    <td colspan="3"><strong>Real Time</strong></td>
+                                </tr>
+                                <tr> 
+                                    <td>
+                                        <div id="systemStatsSnapshotRealTimeUK">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div id="responseRateRealTimeUK"></div>
+                                    </td>
+                                    <td>
+                                        <div id="waitingTimeRealTimeUK"></div>
+                                        <div id="talkingTimeRealTimeUK" style="display:none;"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3"><strong>Average</strong></td>
+                                </tr>
+                                <tr> 
+                                    <td>
+                                        <div id="responseRateMovingAverageUK"></div>
+                                    </td>
+                                    <td>
+                                        <div id="waitingTimeMovingAverageUK"></div>
+                                    </td>
+                                    <td>
+                                        <div id="talkingTimeMovingAverageUK"></div>
+                                    </td>
+                                </tr>
+                            </table>
+                                        <div id="systemStatsSnapshotMovingAverageUK" style="display:none;">
+                                        </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
+            <div class="row">
+                <div class="panel panel-default">
+                    <div class="panel-body" style="padding:5px;">
+                        <div id="movingAverageCallstatUK" ng-controller="lineChartController" style="display:none;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- UK Segment END-->
 
             <div class="row">
                 <div id="realtimeCallstat" ng-controller="realTimelineChartController" style="display:none;">
                 </div>
             </div>
-
-
-        </div>
+            <div class="row">
+                <div id="realtimeCallstatUK" ng-controller="realTimelineChartController" style="display:none;">
+                </div>
+            </div>
+        <!--/div-->
     </body>
 </html>

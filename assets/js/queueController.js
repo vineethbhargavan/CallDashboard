@@ -11,9 +11,16 @@ app.controller('ticketClassificationController', function ($scope) {
 });
 app.controller('urgentTicketsController', function ($scope) {
     socket.on('urgentTickets', function (data) {
-        console.log('Urgent' + data);
-        $scope.urgent = data;
+        console.log('urgentTicketsController' +data.country+";"+ data.urgent[0].urgent);
+        if (data.country == '2') {
+            $scope.urgent = data.urgent[0].urgent;
+        } else if (data.country == '1') {
+            $scope.urgentUK = data.urgent[0].urgent;
+        } else {
+            //ignore
+        }
         $scope.$apply();
+
     });
 });
 
@@ -24,7 +31,13 @@ app.controller('guageController', function ($scope) {
         //$scope.guage = data;
         //console.log('guageController' + JSON.stringify(data));
         //populateSystemSnapShotBar(data, "MovingAverage");
-        populateGuages(data, "MovingAverage", 1.5);
+        if (data.country_identifier == '2') {
+            populateGuages(data, "MovingAverage", 1.5);
+        } else if (data.country_identifier == '1') {
+            populateGuages(data, "MovingAverageUK", 1.5);
+        } else {
+            //ignore
+        }
 
         //$scope.$apply();
 
@@ -38,8 +51,16 @@ app.controller('realTimeGuageController', function ($scope) {
         //google.charts.setOnLoadCallback(populateGuages);
         //$scope.guage = data;
         //console.log('realTimeGuageController' + JSON.stringify(data));
-        populateSystemSnapShotBar(data, "RealTime");
-        populateGuages(data, 'RealTime', 1);
+
+        if (data.country_identifier == '2') {
+            populateSystemSnapShotBar(data, "RealTime");
+            populateGuages(data, 'RealTime', 1);
+        } else if (data.country_identifier == '1') {
+            populateSystemSnapShotBar(data, "RealTimeUK");
+            populateGuages(data, 'RealTimeUK', 1);
+        } else {
+            //ignore
+        }
 
         //$scope.$apply();
 
@@ -51,7 +72,13 @@ app.controller('lineChartController', function ($scope) {
         //google.charts.setOnLoadCallback(populateSystemStats);
         //$scope.guage = data;
         //console.log('lineChartController' + JSON.stringify(data));
-        populateSystemStats(data, 'movingAverageCallstat', 'Call stat every 30 min-24hrs history');
+        if (data.country_identifier == '2') {
+            populateSystemStats(data.data, 'movingAverageCallstat', 'Call stat every 30 min-24hrs history');
+        } else if (data.country_identifier == '1') {
+            populateSystemStats(data.data, 'movingAverageCallstatUK', 'Call stat every 30 min-24hrs history');
+        } else {
+            //ignore
+        }
         //$scope.$apply();
 
     });
@@ -98,7 +125,7 @@ function populateSystemSnapShot(stats, elementId) {
 }
 
 function populateSystemSnapShotBar(stats, elementId) {
-    //console.log('populateSystemSnapShotBar' + JSON.stringify(stats));
+    console.log('populateSystemSnapShotBar' + JSON.stringify(stats));
     var data = google.visualization.arrayToDataTable([
         ['entites', 'Total', 'Blocked', {role: 'annotation'}],
         ['Calls', stats.totalIncomingCalls - stats.totalExternalRedirections, 0, stats.totalIncomingCalls - stats.totalExternalRedirections + ""],
@@ -285,16 +312,33 @@ function populateTicketClassification(ticketGroups) {
     if (ticketGroups == undefined) {
         return;
     }
+    var country = 0;
+    var divID = 'ticketClassification';
     var unsubs = {};
-    unsubs.nos=0;unsubs.assigned=0;unsubs.unassigned=0;unsubs.urgent =0;
+    unsubs.nos = 0;
+    unsubs.assigned = 0;
+    unsubs.unassigned = 0;
+    unsubs.urgent = 0;
     var callback = {};
-    callback.nos=0;callback.assigned=0;callback.unassigned=0;callback.urgent =0;
+    callback.nos = 0;
+    callback.assigned = 0;
+    callback.unassigned = 0;
+    callback.urgent = 0;
     var manual = {};
-    manual.nos=0;manual.assigned=0;manual.unassigned=0;manual.urgent =0;
+    manual.nos = 0;
+    manual.assigned = 0;
+    manual.unassigned = 0;
+    manual.urgent = 0;
     var refundEmail = {};
-    refundEmail.nos=0;refundEmail.assigned=0;refundEmail.unassigned=0;refundEmail.urgent =0;
+    refundEmail.nos = 0;
+    refundEmail.assigned = 0;
+    refundEmail.unassigned = 0;
+    refundEmail.urgent = 0;
     var EmailQuery = {};
-    EmailQuery.nos=0;EmailQuery.assigned=0;EmailQuery.unassigned=0;EmailQuery.urgent =0;
+    EmailQuery.nos = 0;
+    EmailQuery.assigned = 0;
+    EmailQuery.unassigned = 0;
+    EmailQuery.urgent = 0;
 
     //var enquiry_type = {'0': '19 Unsub', '1': '04 Unsub', '2': 'IncomingCall', '3': 'Callback/VM', '4': 'IncomingAnswered', '6': 'ManualTicket', '7': 'Refund Email', '8': 'Email query'};
     for (i = 0; i < ticketGroups.length; i++) {
@@ -328,20 +372,21 @@ function populateTicketClassification(ticketGroups) {
             EmailQuery.unassigned = EmailQuery.unassigned + ticketGroups[i].unassigned;
             EmailQuery.urgent = EmailQuery.urgent + ticketGroups[i].urgent;
         }
+        country = ticketGroups[i].country;
     }
-//console.log(unsubs.urgent);
-      var data = new google.visualization.DataTable();
-      data.addColumn('string', 'Types');
-      data.addColumn('number', 'Count');
-      data.addColumn({'type': 'string', 'role': 'tooltip', 'p': {'html': true}})
-      data.addRows([
-        ['Unsubs', unsubs.nos,customPieToolTip(unsubs.assigned,unsubs.unassigned,unsubs.urgent)],
-        ['Callbacks', callback.nos,customPieToolTip(callback.assigned,callback.unassigned,callback.urgent)],
-        ['Manual', manual.nos,customPieToolTip(manual.assigned,manual.unassigned,manual.urgent)],
-        ['RefundEmail', refundEmail.nos, customPieToolTip(refundEmail.assigned,refundEmail.unassigned,refundEmail.urgent)], // Below limit.
-        ['EmailQuery', EmailQuery.nos,customPieToolTip(EmailQuery.assigned,EmailQuery.unassigned,EmailQuery.urgent)] // Below limit.
-      ]);
-      
+    
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Types');
+    data.addColumn('number', 'Count');
+    data.addColumn({'type': 'string', 'role': 'tooltip', 'p': {'html': true}})
+    data.addRows([
+        ['Unsubs', unsubs.nos, customPieToolTip(unsubs.assigned, unsubs.unassigned, unsubs.urgent)],
+        ['Callbacks', callback.nos, customPieToolTip(callback.assigned, callback.unassigned, callback.urgent)],
+        ['Manual', manual.nos, customPieToolTip(manual.assigned, manual.unassigned, manual.urgent)],
+        ['RefundEmail', refundEmail.nos, customPieToolTip(refundEmail.assigned, refundEmail.unassigned, refundEmail.urgent)], // Below limit.
+        ['EmailQuery', EmailQuery.nos, customPieToolTip(EmailQuery.assigned, EmailQuery.unassigned, EmailQuery.urgent)] // Below limit.
+    ]);
+
     var options = {
         title: 'Ticket Classifications',
         width: 700, height: 400,
@@ -352,18 +397,26 @@ function populateTicketClassification(ticketGroups) {
     if ($('#ticketClassification').length <= 0) {
         return;
     }
-
-    var chart = new google.visualization.PieChart(document.getElementById('ticketClassification'));
+    if (country == 2) {
+        divID = 'ticketClassification';
+        //console.log('Ticket Class country' + divID);
+         //console.log('Ticket Class Data' + JSON.stringify(data));
+    } else if (country == 1) {
+        divID = 'ticketClassificationUK';
+        //console.log('Ticket Class country' + divID);
+        //console.log('Ticket Class Data' + JSON.stringify(data));
+    }
+    var chart = new google.visualization.PieChart(document.getElementById(divID));
 
     chart.draw(data, options);
 }
 
-function customPieToolTip(assigned,unassigned,urgent){
-      return '<div style="padding:5px 5px 5px 5px;">' +
-      '<table class="pie_tooltip">' + '<tr>' +
-      '<td><b>assigned:' + assigned + '</b></td>' + '</tr>' + '<tr>' +
-      '<td><b>unassigned:' + unassigned + '</b></td>' + '</tr>' + '<tr>' +
-      '<td style="color:red"><b>Urgent:' + urgent + '</b></td>' + '</tr>' + '</table>' + '</div>';
+function customPieToolTip(assigned, unassigned, urgent) {
+    return '<div style="padding:5px 5px 5px 5px;">' +
+            '<table class="pie_tooltip">' + '<tr>' +
+            '<td><b>assigned:' + assigned + '</b></td>' + '</tr>' + '<tr>' +
+            '<td><b>unassigned:' + unassigned + '</b></td>' + '</tr>' + '<tr>' +
+            '<td style="color:red"><b>Urgent:' + urgent + '</b></td>' + '</tr>' + '</table>' + '</div>';
 }
 
 function populateSystemStats(callstats, divId, title) {
@@ -384,7 +437,7 @@ function populateSystemStats(callstats, divId, title) {
     var stats = [];
     for (i = 0; i < callstats.length; i++) {
         var singleStat = [];
-        var timestamp = new Date(callstats[i].dateTime);
+        var timestamp = new Date(callstats[i].timestamp);
         //console.log(timestamp);
         singleStat.push(timestamp);
         singleStat.push(callstats[i].totalIncomingCalls);

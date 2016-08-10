@@ -7,9 +7,9 @@
 
 module.exports = {
     connection: 'redis',
-    attributes: { 
-        dateTime: {
-            type: 'integer',
+    attributes: {
+        uuid: {
+            type: 'string',
             primaryKey: true,
             required: true
         }, waitingTime: {
@@ -36,11 +36,11 @@ module.exports = {
             type: 'integer',
             size: 10,
             defaultsTo: 0
-        },totalExternalRedirections: {
+        }, totalExternalRedirections: {
             type: 'integer',
             size: 10,
             defaultsTo: 0
-        },abandonCount_10: {
+        }, abandonCount_10: {
             type: 'integer',
             size: 10,
             defaultsTo: 0
@@ -64,41 +64,45 @@ module.exports = {
             type: 'integer',
             size: 10,
             defaultsTo: 0
-        },responseRate:{
+        }, responseRate: {
             type: 'integer',
             size: 10,
             defaultsTo: 0
-        },abandonRate:{
+        }, abandonRate: {
             type: 'integer',
             size: 10,
             defaultsTo: 0
-        },instances:{
+        }, instances: {
             type: 'integer',
             size: 10,
             defaultsTo: 0
-        },timestamp:{
+        }, timestamp: {
             type: 'integer'
-        },totalCallsInQueue: {
+        }, totalCallsInQueue: {
             type: 'integer',
             size: 10,
             defaultsTo: 0
-        },loggedInOperators:{
+        }, loggedInOperators: {
             type: 'integer',
             size: 10,
             defaultsTo: 0
-        },incoming:{
+        }, incoming: {
             type: 'integer',
             size: 10,
             defaultsTo: 0
-        },outgoing:{
+        }, outgoing: {
             type: 'integer',
             size: 10,
             defaultsTo: 0
-        },idle:{
+        }, idle: {
             type: 'integer',
             size: 10,
             defaultsTo: 0
-        },blocked:{
+        }, blocked: {
+            type: 'integer',
+            size: 10,
+            defaultsTo: 0
+        }, country_identifier: {
             type: 'integer',
             size: 10,
             defaultsTo: 0

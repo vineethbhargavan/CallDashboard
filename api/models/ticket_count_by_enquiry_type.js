@@ -26,6 +26,9 @@ module.exports = {
         }, urgent:{
             type: 'integer',
             size: 30
+        },country:{
+            type: 'integer',
+            size: 30
         }
 
 
