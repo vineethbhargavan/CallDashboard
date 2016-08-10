@@ -128,10 +128,22 @@ module.exports = {
                     var callstats = new r_responseRate._model({uuid: uuid.v1(), waitingTime: 0, abandonTime: 0, connectedTime: 0, connectedCount: 0, abandonCount: 0, totalIncomingCalls: 0, totalExternalRedirections: 0, abandonCount_10: 0, abandonCount_30: 0, abandonCount_120: 0, abandonCount_140: 0, timeoutCount: 0, timeoutTime: 0, responseRate: 0, abandonRate: 0, timestamp: 0, totalCallsInQueue: 0, loggedInOperators: 0});
                     callstats.country_identifier = country_codes[i];
                     r_responseRate.create(callstats).exec(function (err, updated) {
-                        publishRealtimeQueueStats(updated, function (err, realStats) {
+                        populateOperatorStats(function (err, operatorStats) {
                             if (err)
-                                sails.log.info('populateQueueStats ERROR');
+                                return callback(err);
+                            //Opprf.count({where: {flag: 1, id: {'!': ['1025', '1050']}}}).exec(function (err, operators) {
+                            updated.loggedInOperators = operatorStats.totalOperators;
+                            updated.incoming = operatorStats.incoming;
+                            updated.outgoing = operatorStats.outgoing;
+                            updated.idle = operatorStats.idle;
+                            updated.blocked = operatorStats.blocked;
+                            //callback(null, updated);
+                            publishRealtimeQueueStats(updated, function (err, realStats) {
+                                if (err)
+                                    sails.log.info('populateQueueStats ERROR');
+                            });
                         });
+
                         var lastInterval = new Date().getTime() - interval;
                         populateMovingAverageStats(lastInterval, function (err, result) {
                             if (err)
@@ -160,7 +172,7 @@ module.exports = {
 };
 //moving average
 var country_codes = [1, 2];
-var interval = 240000;
+var interval = 600000;
 var realtimeFetchInterval = 0;
 var roomId = "dashboard";
 var movingAvg = setInterval(function () {
@@ -178,7 +190,7 @@ var movingAvg = setInterval(function () {
         }
     });
 
-}, interval);
+}, 60000);
 //var testmethod = setInterval(function () {
 //    iterateTest(2);
 ////    var car = {};
@@ -227,7 +239,7 @@ function populateTicketGraphBasedOnCountry(callback) {
         });
     }
 }
-function extractTicketDetails(country_identifier,callback) {
+function extractTicketDetails(country_identifier, callback) {
     ticket_count_by_enquiry_type.find({country: country_identifier}).exec(function (err, types) {
         if (err)
             return callback(err);
@@ -237,12 +249,12 @@ function extractTicketDetails(country_identifier,callback) {
     });
 
 }
-function extractUrgentTicketDetails(country_identifier,callback) {
+function extractUrgentTicketDetails(country_identifier, callback) {
     ticket_count_by_enquiry_type.find({country: country_identifier}).sum('urgent').exec(function (err, urgent) {
         if (err)
             return callback(err);
-        
-        var result ={};
+
+        var result = {};
         result.country = country_identifier;
         result.urgent = urgent;
         sails.log.info('extractUrgentTicketDetails' + JSON.stringify(result));
@@ -565,13 +577,14 @@ function publishMovingAverageStats(mvAverage, callback) {
     var currentTime = new Date().getTime();
     var previousInterval = currentTime - 86400000;
     sails.log.info('publishMovingAverageStats' + JSON.stringify(mvAverage));
-    mv_responseRate.find({timestamp: {'>': previousInterval, '<': currentTime},country_identifier:mvAverage.country_identifier}).exec(function (err, qresult) {
+    mv_responseRate.find({timestamp: {'>': previousInterval, '<': currentTime}, country_identifier: mvAverage.country_identifier}).sort('timestamp ASC').exec(function (err, qresult) {
         if (err)
             return callback(err);
         //sails.log.info('publishMovingAverageStats Array List' + JSON.stringify(qresult));
-        var result ={};
+        var result = {};
         result.country_identifier = mvAverage.country_identifier;
         result.data = qresult;
+        sails.log.info('publishMovingAverageStats Array List' + JSON.stringify(result));
         sails.sockets.broadcast(roomId, 'movingSystemStats', result);
         callback(null, qresult);
     });

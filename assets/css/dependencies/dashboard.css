@@ -2,8 +2,15 @@
     text-align: center;
     padding: 0px;
 }
+#realTimeGuageControllerUK table tr td {
+    text-align: center;
+    padding: 0px;
+}
 
 #realTimeGuageController table tr td div:first-child{
+    display: inline-block;
+}
+#realTimeGuageControllerUK table tr td div:first-child{
     display: inline-block;
 }
 
@@ -12,8 +19,12 @@
     font-size: 12px;
     font-style: italic;
 }
+#realTimeGuageControllerUK svg g text {
+    font-size: 12px;
+    font-style: italic;
+}
 
-#systemStatsSnapshotRealTime, #systemStatsSnapshotMovingAverage {
+#systemStatsSnapshotRealTime, #systemStatsSnapshotMovingAverage,#systemStatsSnapshotRealTimeUK, #systemStatsSnapshotMovingAverageUK {
     width: 100%;
 }
 
